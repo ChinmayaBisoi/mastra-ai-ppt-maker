@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+// @ts-expect-error - pptx2json is a CommonJS module without types
 import PPTX2Json from "pptx2json";
 
 import fs from "fs";
