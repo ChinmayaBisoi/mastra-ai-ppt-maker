@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { parse as parseViaPptxtojson } from "pptxtojson";
 
 function TestPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -33,18 +34,7 @@ function TestPage() {
     }
   };
 
-  const handleConvert = async () => {
-    if (!file) {
-      setError("Please select a file first");
-      return;
-    }
-
-    setUploading(true);
-    setError(null);
-    setSuccess(null);
-    setJsonResult(null);
-    setSavedFilePath(null);
-
+  async function handleViaPptx2json(file: File) {
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -70,6 +60,36 @@ function TestPage() {
     } finally {
       setUploading(false);
     }
+  }
+
+  async function handleViaPptxtojson(file: File) {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      if (!e.target?.result || !(e.target.result instanceof ArrayBuffer))
+        return;
+      const json = await parseViaPptxtojson(e.target.result);
+      console.log(json);
+      setJsonResult(json);
+      setSuccess("Successfully converted PPTX to JSON! via pptxtojson");
+      setUploading(false);
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  const handleConvert = async () => {
+    if (!file) {
+      setError("Please select a file first");
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+    setSuccess(null);
+    setJsonResult(null);
+    setSavedFilePath(null);
+
+    await handleViaPptxtojson(file);
+    // await handleViaPptx2json(file);
   };
 
   return (
