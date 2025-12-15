@@ -1,47 +1,108 @@
 {
-  "type": "slide",
-  "layout": "textImage",
+  "id": "product-slide",
+  "layout": "16x9",
+  "background": {
+    "color": "#FFFFFF"
+  },
   "elements": [
     {
+      "id": "title",
       "type": "text",
-      "text": "PRODUCT #1",
-      "x": 1,
-      "y": 0.6,
-      "w": 6,
-      "h": 0.6,
-      "options": { "fontSize": 22, "bold": true }
+      "content": "PRODUCT #1",
+      "position": {
+        "x": 1,
+        "y": 0.6,
+        "width": 6,
+        "height": 0.6
+      },
+      "style": {
+        "fontSize": 22,
+        "fontWeight": "bold"
+      }
     },
     {
+      "id": "description",
       "type": "text",
-      "text": "Lorem ipsum dolor sit amet, adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "x": 1,
-      "y": 1.6,
-      "w": 5.5,
-      "h": 3.5,
-      "options": { "fontSize": 16 }
+      "content": "Lorem ipsum dolor sit amet, adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "position": {
+        "x": 1,
+        "y": 1.6,
+        "width": 5.5,
+        "height": 3.5
+      },
+      "style": {
+        "fontSize": 16
+      }
     },
     {
-      "type": "bullets",
-      "items": [
-        "Analytics-driven",
-        "User-friendly",
-        "Cloud-based",
-        "AI-powered",
-        "Scalable"
-      ],
-      "x": 1,
-      "y": 5.3,
-      "w": 5.5,
-      "h": 1.5,
-      "options": { "fontSize": 14 }
+      "id": "bullet-1",
+      "type": "text",
+      "content": "Analytics-driven",
+      "position": {
+        "x": 1,
+        "y": 5.3,
+        "width": 5.5,
+        "height": 0.3
+      },
+      "style": {
+        "fontSize": 14
+      }
     },
     {
-      "type": "image",
-      "src": "product_1.jpg",
-      "x": 7,
-      "y": 1.6,
-      "w": 5,
-      "h": 3.5
+      "id": "bullet-2",
+      "type": "text",
+      "content": "User-friendly",
+      "position": {
+        "x": 1,
+        "y": 5.6,
+        "width": 5.5,
+        "height": 0.3
+      },
+      "style": {
+        "fontSize": 14
+      }
+    },
+    {
+      "id": "bullet-3",
+      "type": "text",
+      "content": "Cloud-based",
+      "position": {
+        "x": 1,
+        "y": 5.9,
+        "width": 5.5,
+        "height": 0.3
+      },
+      "style": {
+        "fontSize": 14
+      }
+    },
+    {
+      "id": "bullet-4",
+      "type": "text",
+      "content": "AI-powered",
+      "position": {
+        "x": 1,
+        "y": 6.2,
+        "width": 5.5,
+        "height": 0.3
+      },
+      "style": {
+        "fontSize": 14
+      }
+    },
+    {
+      "id": "bullet-5",
+      "type": "text",
+      "content": "Scalable",
+      "position": {
+        "x": 1,
+        "y": 6.5,
+        "width": 5.5,
+        "height": 0.3
+      },
+      "style": {
+        "fontSize": 14
+      }
     }
   ]
 }

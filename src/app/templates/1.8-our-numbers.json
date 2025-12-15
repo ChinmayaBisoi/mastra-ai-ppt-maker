@@ -1,42 +1,69 @@
 {
-  "type": "slide",
-  "layout": "metrics",
+  "id": "our-numbers",
+  "layout": "16x9",
+  "background": {
+    "color": "#FFFFFF"
+  },
   "elements": [
     {
-      "type": "metric",
-      "label": "1 year",
-      "value": "In operation",
-      "x": 1,
-      "y": 2,
-      "w": 2.5,
-      "h": 1.5
+      "id": "metric-1",
+      "type": "text",
+      "content": "1 year\nIn operation",
+      "position": {
+        "x": 1,
+        "y": 2,
+        "width": 2.5,
+        "height": 1.5
+      },
+      "style": {
+        "fontSize": 16,
+        "align": "center"
+      }
     },
     {
-      "type": "metric",
-      "label": "180k",
-      "value": "Subscribers",
-      "x": 4,
-      "y": 2,
-      "w": 2.5,
-      "h": 1.5
+      "id": "metric-2",
+      "type": "text",
+      "content": "180k\nSubscribers",
+      "position": {
+        "x": 4,
+        "y": 2,
+        "width": 2.5,
+        "height": 1.5
+      },
+      "style": {
+        "fontSize": 16,
+        "align": "center"
+      }
     },
     {
-      "type": "metric",
-      "label": "3 million",
-      "value": "Raised",
-      "x": 7,
-      "y": 2,
-      "w": 2.5,
-      "h": 1.5
+      "id": "metric-3",
+      "type": "text",
+      "content": "3 million\nRaised",
+      "position": {
+        "x": 7,
+        "y": 2,
+        "width": 2.5,
+        "height": 1.5
+      },
+      "style": {
+        "fontSize": 16,
+        "align": "center"
+      }
     },
     {
-      "type": "metric",
-      "label": "7",
-      "value": "Employees",
-      "x": 10,
-      "y": 2,
-      "w": 2.5,
-      "h": 1.5
+      "id": "metric-4",
+      "type": "text",
+      "content": "7\nEmployees",
+      "position": {
+        "x": 10,
+        "y": 2,
+        "width": 2.5,
+        "height": 1.5
+      },
+      "style": {
+        "fontSize": 16,
+        "align": "center"
+      }
     }
   ]
 }

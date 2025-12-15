@@ -1,26 +1,38 @@
 {
-  "type": "slide",
-  "layout": "text",
+  "id": "our-mission",
+  "layout": "16x9",
+  "background": {
+    "color": "#FFFFFF"
+  },
   "elements": [
     {
+      "id": "title",
       "type": "text",
-      "text": "OUR MISSION",
-      "x": 1,
-      "y": 0.8,
-      "w": 6,
-      "h": 0.6,
-      "options": { "fontSize": 22, "bold": true }
+      "content": "OUR MISSION",
+      "position": {
+        "x": 1,
+        "y": 0.8,
+        "width": 6,
+        "height": 0.6
+      },
+      "style": {
+        "fontSize": 22,
+        "fontWeight": "bold"
+      }
     },
     {
+      "id": "mission-text",
       "type": "text",
-      "text": "To revolutionise access to ideas and technology, enabling all individuals to realise their full creative potential. Through collaboration, innovation, and a commitment to inclusivity, we strive to create a more equitable and inspiring world.",
-      "x": 1,
-      "y": 1.8,
-      "w": 10,
-      "h": 4,
-      "options": {
+      "content": "To revolutionise access to ideas and technology, enabling all individuals to realise their full creative potential. Through collaboration, innovation, and a commitment to inclusivity, we strive to create a more equitable and inspiring world.",
+      "position": {
+        "x": 1,
+        "y": 1.8,
+        "width": 10,
+        "height": 4
+      },
+      "style": {
         "fontSize": 20,
-        "lineSpacing": 28
+        "lineHeight": 28
       }
     }
   ]

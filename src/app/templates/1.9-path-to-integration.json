@@ -1,46 +1,84 @@
 {
-  "type": "slide",
-  "layout": "timeline",
+  "id": "path-to-integration",
+  "layout": "16x9",
+  "background": {
+    "color": "#FFFFFF"
+  },
   "elements": [
     {
-      "type": "timelineStep",
-      "title": "Adapt",
-      "subtitle": "Q1",
-      "x": 1,
-      "y": 3,
-      "w": 2
+      "id": "timeline-1",
+      "type": "text",
+      "content": "Adapt\nQ1",
+      "position": {
+        "x": 1,
+        "y": 3,
+        "width": 2,
+        "height": 1
+      },
+      "style": {
+        "fontSize": 16,
+        "align": "center"
+      }
     },
     {
-      "type": "timelineStep",
-      "title": "Evaluate",
-      "subtitle": "Q2",
-      "x": 3.5,
-      "y": 3,
-      "w": 2
+      "id": "timeline-2",
+      "type": "text",
+      "content": "Evaluate\nQ2",
+      "position": {
+        "x": 3.5,
+        "y": 3,
+        "width": 2,
+        "height": 1
+      },
+      "style": {
+        "fontSize": 16,
+        "align": "center"
+      }
     },
     {
-      "type": "timelineStep",
-      "title": "Launch",
-      "subtitle": "Q3",
-      "x": 6,
-      "y": 3,
-      "w": 2
+      "id": "timeline-3",
+      "type": "text",
+      "content": "Launch\nQ3",
+      "position": {
+        "x": 6,
+        "y": 3,
+        "width": 2,
+        "height": 1
+      },
+      "style": {
+        "fontSize": 16,
+        "align": "center"
+      }
     },
     {
-      "type": "timelineStep",
-      "title": "Monitor",
-      "subtitle": "Q4",
-      "x": 8.5,
-      "y": 3,
-      "w": 2
+      "id": "timeline-4",
+      "type": "text",
+      "content": "Monitor\nQ4",
+      "position": {
+        "x": 8.5,
+        "y": 3,
+        "width": 2,
+        "height": 1
+      },
+      "style": {
+        "fontSize": 16,
+        "align": "center"
+      }
     },
     {
-      "type": "timelineStep",
-      "title": "Iterate",
-      "subtitle": "Q1",
-      "x": 11,
-      "y": 3,
-      "w": 2
+      "id": "timeline-5",
+      "type": "text",
+      "content": "Iterate\nQ1",
+      "position": {
+        "x": 11,
+        "y": 3,
+        "width": 2,
+        "height": 1
+      },
+      "style": {
+        "fontSize": 16,
+        "align": "center"
+      }
     }
   ]
 }

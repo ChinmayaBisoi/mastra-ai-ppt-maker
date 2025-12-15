@@ -208,9 +208,9 @@ export function PresentationSlideViewer({
           }}
           onClick={handleSlideContainerClick}
         >
-          {currentSlide.elements?.map((element) => (
+          {currentSlide.elements?.map((element, idx) => (
             <DraggableSlideElement
-              key={element.id}
+              key={`${currentSlideIndex}-${idx}`}
               element={element}
               scale={INCH_TO_PX}
               onPositionChange={handleElementPositionChange}

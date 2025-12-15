@@ -1,35 +1,135 @@
 {
-  "type": "slide",
-  "layout": "agenda",
+  "id": "agenda",
+  "layout": "16x9",
+  "background": {
+    "color": "#FFFFFF"
+  },
   "elements": [
     {
+      "id": "title",
       "type": "text",
-      "text": "AGENDA",
-      "x": 1,
-      "y": 0.8,
-      "w": 6,
-      "h": 0.6,
-      "options": { "fontSize": 22, "bold": true }
+      "content": "AGENDA",
+      "position": {
+        "x": 1,
+        "y": 0.8,
+        "width": 6,
+        "height": 0.6
+      },
+      "style": {
+        "fontSize": 22,
+        "fontWeight": "bold"
+      }
     },
     {
-      "type": "bullets",
-      "items": [
-        "Our Mission",
-        "The Team",
-        "New Products and Services",
-        "Competitive Analysis",
-        "Competitors",
-        "Size of Market",
-        "Our Numbers",
-        "Path to Integration"
-      ],
-      "x": 1,
-      "y": 1.8,
-      "w": 6,
-      "h": 4.5,
-      "options": {
-        "fontSize": 16,
-        "bullet": true
+      "id": "bullet-1",
+      "type": "text",
+      "content": "Our Mission",
+      "position": {
+        "x": 1,
+        "y": 1.8,
+        "width": 6,
+        "height": 0.5
+      },
+      "style": {
+        "fontSize": 16
+      }
+    },
+    {
+      "id": "bullet-2",
+      "type": "text",
+      "content": "The Team",
+      "position": {
+        "x": 1,
+        "y": 2.3,
+        "width": 6,
+        "height": 0.5
+      },
+      "style": {
+        "fontSize": 16
+      }
+    },
+    {
+      "id": "bullet-3",
+      "type": "text",
+      "content": "New Products and Services",
+      "position": {
+        "x": 1,
+        "y": 2.8,
+        "width": 6,
+        "height": 0.5
+      },
+      "style": {
+        "fontSize": 16
+      }
+    },
+    {
+      "id": "bullet-4",
+      "type": "text",
+      "content": "Competitive Analysis",
+      "position": {
+        "x": 1,
+        "y": 3.3,
+        "width": 6,
+        "height": 0.5
+      },
+      "style": {
+        "fontSize": 16
+      }
+    },
+    {
+      "id": "bullet-5",
+      "type": "text",
+      "content": "Competitors",
+      "position": {
+        "x": 1,
+        "y": 3.8,
+        "width": 6,
+        "height": 0.5
+      },
+      "style": {
+        "fontSize": 16
+      }
+    },
+    {
+      "id": "bullet-6",
+      "type": "text",
+      "content": "Size of Market",
+      "position": {
+        "x": 1,
+        "y": 4.3,
+        "width": 6,
+        "height": 0.5
+      },
+      "style": {
+        "fontSize": 16
+      }
+    },
+    {
+      "id": "bullet-7",
+      "type": "text",
+      "content": "Our Numbers",
+      "position": {
+        "x": 1,
+        "y": 4.8,
+        "width": 6,
+        "height": 0.5
+      },
+      "style": {
+        "fontSize": 16
+      }
+    },
+    {
+      "id": "bullet-8",
+      "type": "text",
+      "content": "Path to Integration",
+      "position": {
+        "x": 1,
+        "y": 5.3,
+        "width": 6,
+        "height": 0.5
+      },
+      "style": {
+        "fontSize": 16
       }
     }
   ]
