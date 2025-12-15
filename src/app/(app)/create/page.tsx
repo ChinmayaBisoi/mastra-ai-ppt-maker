@@ -1,5 +1,6 @@
 import BreadcrumbHeader from "@/components/breadcrumb-header";
 import PageLayout from "@/components/layouts/page-layout";
+import { PresentationForm } from "@/components/presentation-form";
 import { Suspense } from "react";
 
 export default function CreatePage() {
@@ -10,7 +11,7 @@ export default function CreatePage() {
         title="Create Presentation"
         description="Design beautiful presentations with AI assistance"
       >
-        <div>Create Presentation</div>
+        <PresentationForm />
       </PageLayout>
     </Suspense>
   );
