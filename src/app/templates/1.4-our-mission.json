@@ -1,0 +1,27 @@
+{
+  "type": "slide",
+  "layout": "text",
+  "elements": [
+    {
+      "type": "text",
+      "text": "OUR MISSION",
+      "x": 1,
+      "y": 0.8,
+      "w": 6,
+      "h": 0.6,
+      "options": { "fontSize": 22, "bold": true }
+    },
+    {
+      "type": "text",
+      "text": "To revolutionise access to ideas and technology, enabling all individuals to realise their full creative potential. Through collaboration, innovation, and a commitment to inclusivity, we strive to create a more equitable and inspiring world.",
+      "x": 1,
+      "y": 1.8,
+      "w": 10,
+      "h": 4,
+      "options": {
+        "fontSize": 20,
+        "lineSpacing": 28
+      }
+    }
+  ]
+}

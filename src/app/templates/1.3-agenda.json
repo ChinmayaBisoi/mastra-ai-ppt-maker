@@ -1,0 +1,36 @@
+{
+  "type": "slide",
+  "layout": "agenda",
+  "elements": [
+    {
+      "type": "text",
+      "text": "AGENDA",
+      "x": 1,
+      "y": 0.8,
+      "w": 6,
+      "h": 0.6,
+      "options": { "fontSize": 22, "bold": true }
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "Our Mission",
+        "The Team",
+        "New Products and Services",
+        "Competitive Analysis",
+        "Competitors",
+        "Size of Market",
+        "Our Numbers",
+        "Path to Integration"
+      ],
+      "x": 1,
+      "y": 1.8,
+      "w": 6,
+      "h": 4.5,
+      "options": {
+        "fontSize": 16,
+        "bullet": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "id": "cover",
+  "layout": "16x9",
+  "background": {
+    "color": "#F3F1EC"
+  },
+  "elements": [
+    {
+      "id": "title",
+      "type": "text",
+      "content": "Pitch Deck",
+      "position": {
+        "x": 0.6,
+        "y": 1.2,
+        "width": "90%",
+        "height": 1.4
+      },
+      "style": {
+        "fontSize": 120,
+        "fontWeight": "bold",
+        "fontFamily": "Helvetica",
+        "color": "#2B2B2B"
+      }
+    },
+    {
+      "id": "divider",
+      "type": "line",
+      "position": {
+        "x": 0.7,
+        "y": 2.7,
+        "width": 8.5
+      },
+      "style": {
+        "strokeColor": "#8A8A8A",
+        "strokeWidth": 1
+      }
+    },
+    {
+      "id": "subtitle",
+      "type": "text",
+      "content": "NEW BUSINESS OPPORTUNITY",
+      "position": {
+        "x": 0.7,
+        "y": 2.9,
+        "width": "90%"
+      },
+      "style": {
+        "fontSize": 16,
+        "fontWeight": "bold",
+        "letterSpacing": 2,
+        "color": "#2B2B2B"
+      }
+    },
+    {
+      "id": "footer-left",
+      "type": "text",
+      "content": [
+        "Henrietta Mitchell, Founder & CEO",
+        "Matt Zhang, Founder & CTO",
+        "13 September, 2023"
+      ],
+      "position": {
+        "x": 0.6166178385416666,
+        "y": 4.9,
+        "width": 5
+      },
+      "style": {
+        "fontSize": 14,
+        "lineHeight": 22,
+        "color": "#2B2B2B"
+      }
+    },
+    {
+      "id": "company-name",
+      "type": "text",
+      "content": "Ingoude\nCompany",
+      "position": {
+        "x": 6.868733723958333,
+        "y": 4.9,
+        "width": 2
+      },
+      "style": {
+        "fontSize": 18,
+        "fontWeight": "bold",
+        "align": "right",
+        "color": "#2B2B2B"
+      }
+    },
+    {
+      "id": "logo-placeholder",
+      "type": "shape",
+      "shape": "rectangle",
+      "position": {
+        "x": 9.037434895833334,
+        "y": 4.9,
+        "width": 0.6,
+        "height": 0.6
+      },
+      "style": {
+        "strokeColor": "#2B2B2B",
+        "strokeWidth": 1,
+        "fillColor": "#F3F1EC"
+      }
+    }
+  ]
+}

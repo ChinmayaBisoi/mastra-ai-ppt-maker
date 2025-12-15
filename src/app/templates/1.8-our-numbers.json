@@ -1,0 +1,42 @@
+{
+  "type": "slide",
+  "layout": "metrics",
+  "elements": [
+    {
+      "type": "metric",
+      "label": "1 year",
+      "value": "In operation",
+      "x": 1,
+      "y": 2,
+      "w": 2.5,
+      "h": 1.5
+    },
+    {
+      "type": "metric",
+      "label": "180k",
+      "value": "Subscribers",
+      "x": 4,
+      "y": 2,
+      "w": 2.5,
+      "h": 1.5
+    },
+    {
+      "type": "metric",
+      "label": "3 million",
+      "value": "Raised",
+      "x": 7,
+      "y": 2,
+      "w": 2.5,
+      "h": 1.5
+    },
+    {
+      "type": "metric",
+      "label": "7",
+      "value": "Employees",
+      "x": 10,
+      "y": 2,
+      "w": 2.5,
+      "h": 1.5
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "type": "slide",
+  "layout": "textImage",
+  "elements": [
+    {
+      "type": "text",
+      "text": "PRODUCT #1",
+      "x": 1,
+      "y": 0.6,
+      "w": 6,
+      "h": 0.6,
+      "options": { "fontSize": 22, "bold": true }
+    },
+    {
+      "type": "text",
+      "text": "Lorem ipsum dolor sit amet, adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "x": 1,
+      "y": 1.6,
+      "w": 5.5,
+      "h": 3.5,
+      "options": { "fontSize": 16 }
+    },
+    {
+      "type": "bullets",
+      "items": [
+        "Analytics-driven",
+        "User-friendly",
+        "Cloud-based",
+        "AI-powered",
+        "Scalable"
+      ],
+      "x": 1,
+      "y": 5.3,
+      "w": 5.5,
+      "h": 1.5,
+      "options": { "fontSize": 14 }
+    },
+    {
+      "type": "image",
+      "src": "product_1.jpg",
+      "x": 7,
+      "y": 1.6,
+      "w": 5,
+      "h": 3.5
+    }
+  ]
+}

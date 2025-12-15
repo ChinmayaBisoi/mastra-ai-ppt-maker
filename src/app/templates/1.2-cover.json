@@ -1,0 +1,33 @@
+{
+  "type": "slide",
+  "layout": "cover",
+  "background": "#F4F1EB",
+  "elements": [
+    {
+      "type": "text",
+      "text": "Together, we can bridge the gap in technology access and opportunity.",
+      "x": 1.2,
+      "y": 2.5,
+      "w": 8,
+      "h": 2,
+      "options": {
+        "fontSize": 36,
+        "bold": true,
+        "color": "#222222",
+        "align": "left"
+      }
+    },
+    {
+      "type": "text",
+      "text": "Ingoude Company",
+      "x": 10.2,
+      "y": 6.8,
+      "w": 2.5,
+      "h": 0.4,
+      "options": {
+        "fontSize": 12,
+        "align": "right"
+      }
+    }
+  ]
+}

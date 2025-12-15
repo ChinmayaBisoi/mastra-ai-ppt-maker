@@ -86,11 +86,55 @@ export function SlideViewer({ className }: SlideViewerProps) {
     if (!content) return content;
     // Convert pt to px: PowerPoint 72 DPI = 1pt = 1px, Browser 96 DPI = 1pt = 1.333px
     // To match PowerPoint, we need: px = pt * (72/96) = pt * 0.75
-    return content.replace(/(\d+\.?\d*)pt/g, (match, value) => {
+    let processed = content.replace(/(\d+\.?\d*)pt/g, (match, value) => {
       const pt = parseFloat(value);
       const px = pt * 0.75; // Convert to match PowerPoint sizing
       return `${px}px`;
     });
+
+    // Add width constraints to p tags to prevent overflow
+    processed = processed.replace(
+      /<p\s+([^>]*)style="([^"]*)"/gi,
+      (match, attrs, existingStyle) => {
+        // Extract existing style and add width constraints if not present
+        const hasMaxWidth = existingStyle.includes("max-width:");
+        const hasWordWrap =
+          existingStyle.includes("word-wrap:") ||
+          existingStyle.includes("overflow-wrap:");
+        const hasBoxSizing = existingStyle.includes("box-sizing:");
+
+        let newStyle = existingStyle;
+        if (!hasMaxWidth) {
+          newStyle += (newStyle ? ";" : "") + "max-width: 100%";
+        }
+        if (!hasWordWrap) {
+          newStyle +=
+            (newStyle ? ";" : "") +
+            "overflow-wrap: break-word; word-wrap: break-word";
+        }
+        if (!hasBoxSizing) {
+          newStyle += (newStyle ? ";" : "") + "box-sizing: border-box";
+        }
+
+        return `<p ${attrs}style="${newStyle}"`;
+      }
+    );
+
+    // Handle p tags without style attribute
+    processed = processed.replace(/<p\s+([^>]*)>/gi, (match, attrs) => {
+      if (!attrs.includes("style=")) {
+        return `<p ${attrs}style="max-width: 100%; overflow-wrap: break-word; word-wrap: break-word; box-sizing: border-box;">`;
+      }
+      return match;
+    });
+
+    // Handle standalone p tags (no attributes)
+    processed = processed.replace(
+      /<p>/gi,
+      '<p style="max-width: 100%; overflow-wrap: break-word; word-wrap: break-word; box-sizing: border-box;">'
+    );
+
+    return processed;
   };
 
   const renderElement = (
@@ -222,6 +266,7 @@ export function SlideViewer({ className }: SlideViewerProps) {
                     ? "flex-end"
                     : "flex-start",
               boxSizing: "border-box",
+              minWidth: 0, // Allow flex children to shrink below content size
             }}
             className="pointer-events-none"
             dangerouslySetInnerHTML={
@@ -277,6 +322,7 @@ export function SlideViewer({ className }: SlideViewerProps) {
                   ? "flex-end"
                   : "flex-start",
             boxSizing: "border-box",
+            minWidth: 0, // Allow flex children to shrink below content size
           }}
           className="pointer-events-none"
           dangerouslySetInnerHTML={

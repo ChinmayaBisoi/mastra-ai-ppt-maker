@@ -1,0 +1,46 @@
+{
+  "type": "slide",
+  "layout": "timeline",
+  "elements": [
+    {
+      "type": "timelineStep",
+      "title": "Adapt",
+      "subtitle": "Q1",
+      "x": 1,
+      "y": 3,
+      "w": 2
+    },
+    {
+      "type": "timelineStep",
+      "title": "Evaluate",
+      "subtitle": "Q2",
+      "x": 3.5,
+      "y": 3,
+      "w": 2
+    },
+    {
+      "type": "timelineStep",
+      "title": "Launch",
+      "subtitle": "Q3",
+      "x": 6,
+      "y": 3,
+      "w": 2
+    },
+    {
+      "type": "timelineStep",
+      "title": "Monitor",
+      "subtitle": "Q4",
+      "x": 8.5,
+      "y": 3,
+      "w": 2
+    },
+    {
+      "type": "timelineStep",
+      "title": "Iterate",
+      "subtitle": "Q1",
+      "x": 11,
+      "y": 3,
+      "w": 2
+    }
+  ]
+}

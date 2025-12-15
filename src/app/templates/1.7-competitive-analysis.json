@@ -1,0 +1,33 @@
+{
+  "type": "slide",
+  "layout": "comparison",
+  "elements": [
+    {
+      "type": "text",
+      "text": "COMPETITIVE ANALYSIS",
+      "x": 1,
+      "y": 0.6,
+      "w": 6,
+      "h": 0.6,
+      "options": { "fontSize": 22, "bold": true }
+    },
+
+    {
+      "type": "text",
+      "text": "Wardiere Inc.",
+      "x": 1,
+      "y": 1.6,
+      "w": 3.5,
+      "h": 0.4,
+      "options": { "bold": true }
+    },
+    {
+      "type": "bullets",
+      "items": ["12M MAU", "Tiered ads", "Desktop-first", "100 employees"],
+      "x": 1,
+      "y": 2.1,
+      "w": 3.5,
+      "h": 3
+    }
+  ]
+}
