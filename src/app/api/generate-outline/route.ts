@@ -31,7 +31,7 @@ ${description}
 
 Please create a structured outline with ${slideCount} slides. Each slide should have:
 - A descriptive title (3-8 words, specific and actionable)
-- 2-4 key points covering the main content
+- 2-5 key points covering the main content 
 
 IMPORTANT: Return the outline as a valid JSON object matching this structure:
 {

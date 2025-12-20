@@ -24,7 +24,8 @@ export function OutlineEditor({
   isStreaming = false,
   streamedText = "",
 }: OutlineEditorProps) {
-  const [editableOutline, setEditableOutline] = useState<PresentationOutline | null>(outline);
+  const [editableOutline, setEditableOutline] =
+    useState<PresentationOutline | null>(outline);
 
   useEffect(() => {
     if (outline) {
@@ -73,9 +74,9 @@ export function OutlineEditor({
     if (!editableOutline) return;
 
     const updated = { ...editableOutline };
-    updated.slides[slideIndex].keyPoints = updated.slides[slideIndex].keyPoints.filter(
-      (_, i) => i !== pointIndex
-    );
+    updated.slides[slideIndex].keyPoints = updated.slides[
+      slideIndex
+    ].keyPoints.filter((_, i) => i !== pointIndex);
     setEditableOutline(updated);
   };
 
@@ -195,4 +196,3 @@ export function OutlineEditor({
     </Card>
   );
 }
-

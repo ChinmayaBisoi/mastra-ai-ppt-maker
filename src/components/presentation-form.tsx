@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { OutlineEditor } from "@/components/outline-editor";
 import { presentationOutlineSchema } from "@/schema/ppt-outline";
 import type { z } from "zod";
@@ -24,6 +24,12 @@ export function PresentationForm() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [streamedText, setStreamedText] = useState("");
   const [outline, setOutline] = useState<PresentationOutline | null>(null);
+
+  useEffect(() => {
+    if (outline && !isGenerating) {
+      console.log("Generated outline:", outline);
+    }
+  }, [outline, isGenerating]);
 
   const handleGenerateOutline = async () => {
     setIsGenerating(true);
@@ -67,7 +73,7 @@ export function PresentationForm() {
           if (line.startsWith("data: ")) {
             try {
               const data = JSON.parse(line.slice(6));
-              
+
               if (data.type === "chunk") {
                 setStreamedText((prev) => prev + data.chunk);
               } else if (data.type === "complete") {
