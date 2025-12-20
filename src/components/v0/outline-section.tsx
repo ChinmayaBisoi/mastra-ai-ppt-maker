@@ -24,7 +24,9 @@ export function OutlineSection({
           <CardTitle>Presentation Outline</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-sm text-muted-foreground">Loading outline...</div>
+          <div className="text-sm text-muted-foreground">
+            Loading outline...
+          </div>
         </CardContent>
       </Card>
     );
@@ -53,7 +55,7 @@ export function OutlineSection({
           <p className="text-sm text-muted-foreground">{outline.summary}</p>
         )}
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 overflow-y-auto">
         {outline.slides.map((slide) => (
           <Card key={slide.slideNumber} className="border-l-4 border-l-primary">
             <CardHeader className="pb-2">
@@ -77,4 +79,3 @@ export function OutlineSection({
     </Card>
   );
 }
-
