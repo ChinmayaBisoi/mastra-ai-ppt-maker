@@ -74,6 +74,8 @@ export default function PresentationEditorPage() {
           }) || null,
       });
 
+      setSlides(data.slides as Slide[]);
+
       if (!!data && !!data.slides && data.slides.length > 0) {
         hasSlides = true;
       }
