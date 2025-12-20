@@ -15,7 +15,6 @@ interface OutlineSectionProps {
 export function OutlineSection({
   outline,
   loading = false,
-  editable = false,
 }: OutlineSectionProps) {
   if (loading) {
     return (
@@ -48,28 +47,40 @@ export function OutlineSection({
   }
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle>Presentation Outline</CardTitle>
+    <Card className="h-full border-0 shadow-sm gap-0 overflow-y-auto">
+      <CardHeader className="pb-4 border-b">
+        <CardTitle className="text-xl font-semibold">
+          Presentation Outline
+        </CardTitle>
         {outline.summary && (
-          <p className="text-sm text-muted-foreground">{outline.summary}</p>
+          <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+            {outline.summary}
+          </p>
         )}
       </CardHeader>
-      <CardContent className="space-y-4 overflow-y-auto">
+      <CardContent className="p-0">
         {outline.slides.map((slide) => (
-          <Card key={slide.slideNumber} className="border-l-4 border-l-primary">
-            <CardHeader className="pb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-muted-foreground">
-                  Slide {slide.slideNumber}
+          <Card
+            key={slide.slideNumber}
+            className="border border-border/50 hover:border-primary/50 transition-colors duration-200 shadow-sm hover:shadow-md rounded-none"
+          >
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                  {slide.slideNumber}
                 </span>
               </div>
-              <CardTitle className="text-base">{slide.title}</CardTitle>
+              <CardTitle className="text-base font-medium leading-tight">
+                {slide.title}
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+            <CardContent className="pt-0">
+              <ul className="space-y-2 text-sm text-muted-foreground">
                 {slide.keyPoints.map((point, index) => (
-                  <li key={index}>{point}</li>
+                  <li key={index} className="flex items-start gap-2">
+                    <span className="text-primary mt-1.5 shrink-0">•</span>
+                    <span className="leading-relaxed">{point}</span>
+                  </li>
                 ))}
               </ul>
             </CardContent>
