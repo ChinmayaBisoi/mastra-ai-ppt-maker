@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { OutlineEditor } from "@/components/outline-editor";
 import { presentationOutlineSchema } from "@/schema/ppt-outline";
 import type { z } from "zod";
@@ -19,11 +20,13 @@ import type { z } from "zod";
 type PresentationOutline = z.infer<typeof presentationOutlineSchema>;
 
 export function PresentationForm() {
+  const router = useRouter();
   const [description, setDescription] = useState("");
   const [slideCount, setSlideCount] = useState("8");
   const [isGenerating, setIsGenerating] = useState(false);
   const [streamedText, setStreamedText] = useState("");
   const [outline, setOutline] = useState<PresentationOutline | null>(null);
+  const [presentationId, setPresentationId] = useState<string | null>(null);
 
   useEffect(() => {
     if (outline && !isGenerating) {
@@ -79,6 +82,10 @@ export function PresentationForm() {
               } else if (data.type === "complete") {
                 if (data.outline) {
                   setOutline(data.outline);
+                  // Capture presentationId from response (outline is saved to DB)
+                  if (data.presentationId) {
+                    setPresentationId(data.presentationId);
+                  }
                 } else if (data.text) {
                   // Try to parse the text as JSON
                   try {
@@ -110,6 +117,12 @@ export function PresentationForm() {
   const handleSaveOutline = (savedOutline: PresentationOutline) => {
     console.log("Saving outline:", savedOutline);
     // TODO: Implement actual save logic
+  };
+
+  const handleGenerateSlides = () => {
+    if (presentationId) {
+      router.push(`/create/${presentationId}`);
+    }
   };
 
   return (
@@ -159,12 +172,27 @@ export function PresentationForm() {
       </Card>
 
       {(isGenerating || outline) && (
-        <OutlineEditor
-          outline={outline}
-          onSave={handleSaveOutline}
-          isStreaming={isGenerating}
-          streamedText={streamedText}
-        />
+        <>
+          <OutlineEditor
+            outline={outline}
+            onSave={handleSaveOutline}
+            isStreaming={isGenerating}
+            streamedText={streamedText}
+          />
+          {outline && presentationId && !isGenerating && (
+            <Card className="max-w-2xl">
+              <CardContent className="pt-6">
+                <Button
+                  onClick={handleGenerateSlides}
+                  className="w-full"
+                  size="lg"
+                >
+                  Generate Slides
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
     </div>
   );

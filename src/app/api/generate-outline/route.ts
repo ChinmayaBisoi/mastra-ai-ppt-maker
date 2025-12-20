@@ -1,11 +1,21 @@
 import { NextRequest } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { mastra } from "@/mastra";
 import { presentationOutlineSchema } from "@/schema/ppt-outline";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
+    const { userId: clerkId } = await auth();
+    if (!clerkId) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const body = await request.json();
-    const { description, slideCount } = body;
+    const { description, slideCount, presentationId } = body;
 
     if (!description || !slideCount) {
       return new Response(
@@ -86,10 +96,42 @@ Return ONLY the JSON object, no additional text before or after.`;
               const parsed = JSON.parse(jsonMatch[0]);
               const validated = presentationOutlineSchema.parse(parsed);
 
-              // Send the final validated outline
+              // Find or create User
+              let user = await prisma.user.findUnique({
+                where: { clerkId },
+              });
+
+              if (!user) {
+                user = await prisma.user.create({
+                  data: { clerkId },
+                });
+              }
+
+              // Create or update Presentation with outline
+              const presentation = presentationId
+                ? await prisma.presentation.update({
+                    where: { id: presentationId },
+                    data: {
+                      outline: validated as any,
+                      userInput: description,
+                    },
+                  })
+                : await prisma.presentation.create({
+                    data: {
+                      userId: user.id,
+                      userInput: description,
+                      outline: validated as any,
+                    },
+                  });
+
+              // Send the final validated outline with presentationId
               controller.enqueue(
                 encoder.encode(
-                  `data: ${JSON.stringify({ type: "complete", outline: validated })}\n\n`
+                  `data: ${JSON.stringify({
+                    type: "complete",
+                    outline: validated,
+                    presentationId: presentation.id,
+                  })}\n\n`
                 )
               );
             } else {
@@ -100,7 +142,8 @@ Return ONLY the JSON object, no additional text before or after.`;
                 )
               );
             }
-          } catch {
+          } catch (error) {
+            console.error("Error saving outline:", error);
             // If parsing fails, send the raw text
             controller.enqueue(
               encoder.encode(

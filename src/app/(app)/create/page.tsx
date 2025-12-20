@@ -1,6 +1,6 @@
 import BreadcrumbHeader from "@/components/breadcrumb-header";
 import PageLayout from "@/components/layouts/page-layout";
-import { PresentationForm } from "@/components/presentation-form";
+import { PresentationForm } from "@/components/v0/presentation-form";
 import { Suspense } from "react";
 
 export default function CreatePage() {

@@ -21,10 +21,12 @@ model User {
 }
 
 model Presentation {
-  id        String   @id @default(cuid())
-  userId    String
-  userInput String
-  outline   Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  userId      String
+  userInput   String
+  outline     Json?
+  slides      Json?
+  designStyle Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

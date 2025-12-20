@@ -5,12 +5,14 @@ import { LibSQLStore } from "@mastra/libsql";
 import { weatherWorkflow } from "./workflows/weather-workflow";
 import { weatherAgent } from "./agents/weather-agent";
 import { pptxOutlineGeneratorAgent } from "./agents/pptx-outline-generator-agent";
+import { pptxSlideGeneratorAgent } from "./agents/pptx-slide-generator-agent";
 
 export const mastra = new Mastra({
   workflows: { weatherWorkflow },
   agents: {
     weatherAgent,
     pptxOutlineGeneratorAgent,
+    pptxSlideGeneratorAgent,
   },
   storage: new LibSQLStore({
     // id: "mastra-storage",
