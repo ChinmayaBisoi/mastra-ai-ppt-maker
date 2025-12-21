@@ -253,20 +253,9 @@ export default function PresentationEditorPage() {
         description="Design beautiful presentations with AI assistance"
       >
         <div className="space-y-4">
-          <div className="flex items-center justify-center">
-            <Alert className="max-w-lg">
-              <InfoIcon className="h-4 w-4" />
-              <AlertTitle>Heads up!</AlertTitle>
-              <AlertDescription>
-                This is Application Demo. Maximum 5 slides can be generated for
-                demo
-              </AlertDescription>
-            </Alert>
-          </div>
-
-          <div className="grid grid-cols-5 gap-6 p-4">
+          <div className="grid grid-cols-5 gap-6 pb-4">
             {/* Outline Section - Left */}
-            <div className="col-span-2 h-[90vh] overflow-auto">
+            <div className="col-span-2 overflow-auto">
               <OutlineSection
                 outline={presentation?.outline || null}
                 loading={loading}
@@ -275,10 +264,7 @@ export default function PresentationEditorPage() {
             </div>
 
             {/* Slides Section - Right */}
-            <div
-              className="col-span-3 h-screen overflow-auto"
-              ref={containerRef}
-            >
+            <div className="col-span-3 overflow-auto" ref={containerRef}>
               {isGenerating && slides.length === 0 && (
                 <div className="flex items-center justify-center h-64">
                   <div className="text-center">
