@@ -3,125 +3,40 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { OutlineEditor } from "@/components/outline-editor";
-import { presentationOutlineSchema } from "@/schema/ppt-outline";
-import type { z } from "zod";
-
-type PresentationOutline = z.infer<typeof presentationOutlineSchema>;
 
 export function PresentationForm() {
   const router = useRouter();
   const [description, setDescription] = useState("");
-  const [slideCount, setSlideCount] = useState("8");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [streamedText, setStreamedText] = useState("");
-  const [outline, setOutline] = useState<PresentationOutline | null>(null);
-  const [presentationId, setPresentationId] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
-  useEffect(() => {
-    if (outline && !isGenerating) {
-      console.log("Generated outline:", outline);
-    }
-  }, [outline, isGenerating]);
+  const handleCreate = async () => {
+    if (!description.trim()) return;
 
-  const handleGenerateOutline = async () => {
-    setIsGenerating(true);
-    setStreamedText("");
-    setOutline(null);
+    setIsCreating(true);
 
     try {
-      const response = await fetch("/api/generate-outline", {
+      const response = await fetch("/api/presentation", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          description,
-          slideCount: parseInt(slideCount, 10),
+          userInput: description,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate outline");
+        throw new Error("Failed to create presentation");
       }
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-
-      if (!reader) {
-        throw new Error("No response body");
-      }
-
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n\n");
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(line.slice(6));
-
-              if (data.type === "chunk") {
-                setStreamedText((prev) => prev + data.chunk);
-              } else if (data.type === "complete") {
-                if (data.outline) {
-                  setOutline(data.outline);
-                  // Capture presentationId from response (outline is saved to DB)
-                  if (data.presentationId) {
-                    setPresentationId(data.presentationId);
-                  }
-                } else if (data.text) {
-                  // Try to parse the text as JSON
-                  try {
-                    const jsonMatch = data.text.match(/\{[\s\S]*\}/);
-                    if (jsonMatch) {
-                      const parsed = JSON.parse(jsonMatch[0]);
-                      const validated = presentationOutlineSchema.parse(parsed);
-                      setOutline(validated);
-                    }
-                  } catch {
-                    // If parsing fails, keep the text
-                    setStreamedText(data.text);
-                  }
-                }
-                setIsGenerating(false);
-              }
-            } catch (e) {
-              console.error("Error parsing SSE data:", e);
-            }
-          }
-        }
-      }
+      const presentation = await response.json();
+      router.push(`/presentation/${presentation.id}`);
     } catch (error) {
-      console.error("Error generating outline:", error);
-      setIsGenerating(false);
-    }
-  };
-
-  const handleSaveOutline = (savedOutline: PresentationOutline) => {
-    console.log("Saving outline:", savedOutline);
-    // TODO: Implement actual save logic
-  };
-
-  const handleGenerateSlides = () => {
-    if (presentationId) {
-      router.push(`/create/${presentationId}`);
+      console.error("Error creating presentation:", error);
+      setIsCreating(false);
     }
   };
 
@@ -144,56 +59,16 @@ export function PresentationForm() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="slide-count">Number of slides</Label>
-            <Select value={slideCount} onValueChange={setSlideCount}>
-              <SelectTrigger id="slide-count" className="w-full">
-                <SelectValue placeholder="Select number of slides" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 13 }, (_, i) => i + 4).map((num) => (
-                  <SelectItem key={num} value={num.toString()}>
-                    {num} {num === 1 ? "slide" : "slides"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           <Button
-            onClick={handleGenerateOutline}
+            onClick={handleCreate}
             className="w-full"
             size="lg"
-            disabled={!description.trim() || isGenerating}
+            disabled={!description.trim() || isCreating}
           >
-            {isGenerating ? "Generating..." : "Generate Outline"}
+            {isCreating ? "Creating..." : "Create"}
           </Button>
         </CardContent>
       </Card>
-
-      {(isGenerating || outline) && (
-        <>
-          <OutlineEditor
-            outline={outline}
-            onSave={handleSaveOutline}
-            isStreaming={isGenerating}
-            streamedText={streamedText}
-          />
-          {outline && presentationId && !isGenerating && (
-            <Card className="max-w-2xl">
-              <CardContent className="pt-6">
-                <Button
-                  onClick={handleGenerateSlides}
-                  className="w-full"
-                  size="lg"
-                >
-                  Generate Slides
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </>
-      )}
     </div>
   );
 }

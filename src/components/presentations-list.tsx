@@ -54,7 +54,7 @@ export function PresentationsList() {
   useEffect(() => {
     async function fetchPresentations() {
       try {
-        const response = await fetch("/api/presentations");
+        const response = await fetch("/api/presentation");
         if (!response.ok) {
           throw new Error("Failed to fetch presentations");
         }

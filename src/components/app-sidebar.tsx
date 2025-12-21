@@ -67,7 +67,7 @@ const data = {
     },
     {
       title: "My Presentations",
-      url: "/presentations",
+      url: "/presentation",
       icon: Presentation,
     },
     {

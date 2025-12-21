@@ -39,7 +39,7 @@ export default function PresentationEditorPage() {
     null
   );
   const [loading, setLoading] = useState(true);
-  const [slides, setSlides] = useState<Slide[]>([]);
+  const [slides, setSlides] = useState<Slide[] | null>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +51,7 @@ export default function PresentationEditorPage() {
     let hasSlides = false;
     try {
       setLoading(true);
-      const response = await fetch(`/api/presentations/${presentationId}`);
+      const response = await fetch(`/api/presentation/${presentationId}`);
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -131,7 +131,7 @@ export default function PresentationEditorPage() {
         (index, total, html) => {
           // Update slides in real-time as they're generated
           setSlides((prev) => {
-            const updated = [...prev];
+            const updated = [...(prev || [])];
             updated[index] = { code: html };
             return updated;
           });
@@ -182,13 +182,13 @@ export default function PresentationEditorPage() {
   // }, [presentation, isGenerating]);
 
   const handleSlideUpdate = async (index: number, code: string) => {
-    const updatedSlides = [...slides];
+    const updatedSlides = [...(slides || [])];
     updatedSlides[index] = { code };
     setSlides(updatedSlides);
 
     // Auto-save to database
     try {
-      await updateSlideCode(presentationId, index, code, slides);
+      await updateSlideCode(presentationId, index, code, slides || []);
     } catch (err) {
       console.error("Error saving slide:", err);
     }
@@ -265,7 +265,7 @@ export default function PresentationEditorPage() {
 
             {/* Slides Section - Right */}
             <div className="col-span-3 overflow-auto" ref={containerRef}>
-              {isGenerating && slides.length === 0 && (
+              {isGenerating && slides?.length === 0 && (
                 <div className="flex items-center justify-center h-64">
                   <div className="text-center">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
@@ -276,7 +276,7 @@ export default function PresentationEditorPage() {
                 </div>
               )}
 
-              {slides.map((slide, index) => (
+              {slides?.map((slide, index) => (
                 <SliderFrame
                   key={index}
                   slide={slide}
@@ -286,7 +286,7 @@ export default function PresentationEditorPage() {
               ))}
 
               {!isGenerating &&
-                slides.length === 0 &&
+                slides?.length === 0 &&
                 presentation?.outline && (
                   <div className="flex items-center justify-center h-64">
                     <Button onClick={generateSlides} size="lg">
@@ -298,7 +298,7 @@ export default function PresentationEditorPage() {
           </div>
 
           {/* Export Button */}
-          {slides.length > 0 && (
+          {slides?.length && slides?.length > 0 && (
             <Button
               onClick={handleExportPPTX}
               size="lg"

@@ -2,9 +2,11 @@ import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(
+export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ presentationId: string }> }
+  {
+    params,
+  }: { params: Promise<{ presentationId: string; documentId: string }> }
 ) {
   try {
     const { userId: clerkId } = await auth();
@@ -15,19 +17,16 @@ export async function GET(
       });
     }
 
-    const { presentationId } = await params;
+    const { presentationId, documentId } = await params;
 
-    // Verify user owns this presentation
-    const user = await prisma.user.findUnique({
+    // Find or create user
+    let user = await prisma.user.findUnique({
       where: { clerkId },
     });
 
-    console.log("user", user);
-
     if (!user) {
-      return new Response(JSON.stringify({ error: "User not found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
+      user = await prisma.user.create({
+        data: { clerkId },
       });
     }
 
@@ -45,17 +44,22 @@ export async function GET(
       });
     }
 
-    return new Response(JSON.stringify(presentation), {
+    await prisma.document.delete({
+      where: {
+        id: documentId,
+        presentationId,
+      },
+    });
+
+    return new Response(JSON.stringify({ success: true }), {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error fetching presentation:", error);
+    console.error("Error deleting document:", error);
     return new Response(
       JSON.stringify({
         error:
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch presentation",
+          error instanceof Error ? error.message : "Failed to delete document",
       }),
       {
         status: 500,

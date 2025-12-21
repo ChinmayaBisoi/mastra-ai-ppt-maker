@@ -7,7 +7,7 @@ export async function saveSlidesToDatabase(
   slides: Slide[]
 ): Promise<void> {
   try {
-    const response = await fetch(`/api/presentations/${presentationId}/slides`, {
+    const response = await fetch(`/api/presentation/${presentationId}/slides`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -35,4 +35,3 @@ export async function updateSlideCode(
   updatedSlides[slideIndex] = { code };
   await saveSlidesToDatabase(presentationId, updatedSlides);
 }
-

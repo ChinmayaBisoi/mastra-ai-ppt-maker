@@ -21,12 +21,24 @@ model User {
 }
 
 model Presentation {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   userId      String
   userInput   String
   outline     Json?
   slides      Json?
   designStyle Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  documents   Document[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Document {
+  id             String       @id @default(cuid())
+  presentationId String
+  presentation   Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
+  fileName       String
+  fileUrl        String
+  fileSize       Int
+  fileType       String
+  uploadedAt     DateTime     @default(now())
 }

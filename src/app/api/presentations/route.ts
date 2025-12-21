@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const { userId: clerkId } = await auth();
     if (!clerkId) {
@@ -60,3 +60,62 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function POST(request: NextRequest) {
+  try {
+    const { userId: clerkId } = await auth();
+    if (!clerkId) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const body = await request.json();
+    const { userInput } = body;
+
+    if (!userInput || !userInput.trim()) {
+      return new Response(JSON.stringify({ error: "userInput is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Find or create User
+    let user = await prisma.user.findUnique({
+      where: { clerkId },
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: { clerkId },
+      });
+    }
+
+    // Create Presentation
+    const presentation = await prisma.presentation.create({
+      data: {
+        userId: user.id,
+        userInput: userInput.trim(),
+      },
+    });
+
+    return new Response(JSON.stringify(presentation), {
+      status: 201,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("Error creating presentation:", error);
+    return new Response(
+      JSON.stringify({
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create presentation",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+}
