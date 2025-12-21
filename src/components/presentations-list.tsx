@@ -10,7 +10,7 @@ import { Sparkles, ChevronRight } from "lucide-react";
 function formatRelativeTime(date: Date): string {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
+
   if (diffInSeconds < 60) return "just now";
   if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60);
@@ -133,7 +133,7 @@ export function PresentationsList() {
                   </div>
                 )}
               </div>
-              
+
               <div className="flex items-center justify-between pt-4 border-t border-border/50">
                 <span className="text-xs text-muted-foreground">
                   {formatRelativeTime(updatedAt)}
@@ -147,4 +147,3 @@ export function PresentationsList() {
     </div>
   );
 }
-
