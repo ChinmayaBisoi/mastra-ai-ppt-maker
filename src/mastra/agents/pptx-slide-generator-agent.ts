@@ -1,7 +1,7 @@
 import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import { LibSQLStore } from "@mastra/libsql";
-import { AI_MODELS } from "@/constants/ai-models";
+import { DEFAULT_MODEL } from "@/constants/ai-models";
 import { documentRAGTool } from "../tools/document-rag-tool";
 
 export const pptxSlideGeneratorAgent = new Agent({
@@ -111,7 +111,7 @@ Remember: Generate production-ready HTML code that can be directly embedded in a
 ## DOCUMENT CONTEXT
 If the user has uploaded documents for this presentation, use the documentRAGTool to search for relevant information that can enhance the slide content. Incorporate relevant facts, data, or insights from uploaded documents when appropriate.
   `,
-  model: AI_MODELS.FREE.GPT_OSS_20B,
+  model: DEFAULT_MODEL,
   tools: { documentRAGTool },
   memory: new Memory({
     storage: new LibSQLStore({

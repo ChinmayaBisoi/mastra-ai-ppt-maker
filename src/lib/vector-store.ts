@@ -11,7 +11,7 @@ export async function initializeVectorStore() {
   try {
     await vectorStore.createIndex({
       indexName: "document_chunks",
-      dimension: 1536, // text-embedding-3-small dimension
+      dimension: 768, // nomic-embed-text dimension (Ollama)
     });
     console.log("Vector store index ready");
   } catch (error: unknown) {

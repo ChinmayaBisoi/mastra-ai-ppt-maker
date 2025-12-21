@@ -1,10 +1,12 @@
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import { embed } from "ai";
-import { openai } from "@ai-sdk/openai";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { vectorStore } from "@/lib/vector-store";
+import { ollama } from "@/constants/ai-models";
 
-const EMBEDDING_MODEL = openai.embedding("text-embedding-3-small");
+// Using nomic-embed-text (768 dimensions) - must match document-processor.ts
+const EMBEDDING_MODEL = ollama.textEmbeddingModel("nomic-embed-text");
 
 export const documentRAGTool = createTool({
   id: "document-rag-search",

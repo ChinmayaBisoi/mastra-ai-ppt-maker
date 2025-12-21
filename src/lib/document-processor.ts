@@ -1,25 +1,35 @@
 import { MDocument } from "@mastra/rag";
 import { embedMany } from "ai";
-import { openai } from "@ai-sdk/openai";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import mammoth from "mammoth";
 import { vectorStore } from "./vector-store";
 import { initRAG } from "./init-rag";
 import { prisma } from "./prisma";
 
-const EMBEDDING_MODEL = openai.embedding("text-embedding-3-small");
+// Create Ollama provider for embeddings
+const ollama = createOpenAICompatible({
+  name: "ollama",
+  baseURL: process.env.OLLAMA_BASE_URL || "http://localhost:11434/v1",
+  apiKey: "ollama",
+});
+
+// Using nomic-embed-text (768 dimensions) - alternative: "all-minilm" (384 dimensions)
+const EMBEDDING_MODEL = ollama.textEmbeddingModel("nomic-embed-text");
 
 export async function extractTextFromDocument(
   fileUrl: string,
   fileType: string
 ): Promise<string> {
   const response = await fetch(fileUrl);
-  const buffer = await response.arrayBuffer();
+  const arrayBuffer = await response.arrayBuffer();
 
   if (fileType.includes("word") || fileType.includes("document")) {
-    const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+    // Convert ArrayBuffer to Buffer for mammoth (mammoth expects Buffer, not ArrayBuffer)
+    const buffer = Buffer.from(arrayBuffer);
+    const result = await mammoth.extractRawText({ buffer });
     return result.value;
   } else if (fileType.includes("text") || fileType.includes("plain")) {
-    return new TextDecoder().decode(buffer);
+    return new TextDecoder().decode(arrayBuffer);
   }
 
   throw new Error(`Unsupported file type: ${fileType}`);

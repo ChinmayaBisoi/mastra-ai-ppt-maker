@@ -2,7 +2,7 @@ import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import { LibSQLStore } from "@mastra/libsql";
 import { weatherTool } from "../tools/weather-tool";
-import { AI_MODELS } from "@/constants/ai-models";
+import { DEFAULT_MODEL } from "@/constants/ai-models";
 
 export const weatherAgent = new Agent({
   id: "weather-agent",
@@ -21,8 +21,7 @@ export const weatherAgent = new Agent({
 
       Use the weatherTool to fetch current weather data.
 `,
-  // model: "openai/gpt-4o-mini",
-  model: AI_MODELS.FREE.GPT_OSS_20B,
+  model: DEFAULT_MODEL,
   tools: { weatherTool },
 
   memory: new Memory({
