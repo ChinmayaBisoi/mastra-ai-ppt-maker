@@ -15,20 +15,34 @@ export const documentRAGTool = createTool({
   inputSchema: z.object({
     query: z
       .string()
+      .min(1, "Query cannot be empty")
       .describe("The search query to find relevant document content"),
     presentationId: z
       .string()
+      .min(1, "Presentation ID is required")
       .describe("The presentation ID to search documents for"),
     topK: z
-      .number()
+      .union([z.number().int().min(1).max(20), z.string()])
+      .transform((val) => {
+        // Handle both number and string inputs (LLMs sometimes send strings)
+        const num = typeof val === "string" ? parseInt(val, 10) : val;
+        if (isNaN(num) || num < 1) return 5;
+        if (num > 20) return 20;
+        return num;
+      })
       .default(5)
-      .optional()
-      .describe("Number of relevant chunks to retrieve (default: 5)"),
+      .describe("Number of relevant chunks to retrieve (default: 5, max: 20)"),
   }),
   execute: async (inputData) => {
     const query = inputData.context?.query;
     const presentationId = inputData.context?.presentationId;
-    const topK = inputData.context?.topK ?? 5;
+    // Handle both number and string for topK (LLMs sometimes send strings)
+    let topK = inputData.context?.topK ?? 5;
+    if (typeof topK === "string") {
+      topK = parseInt(topK, 10);
+      if (isNaN(topK) || topK < 1) topK = 5;
+      if (topK > 20) topK = 20;
+    }
 
     if (!query || !presentationId) {
       return {

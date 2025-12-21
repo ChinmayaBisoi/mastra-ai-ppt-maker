@@ -64,7 +64,15 @@ Transform user input into a complete, numbered presentation outline with exactly
 - **Too few slides for topic**: Focus on highest-priority content, consolidate related points
 - **No slide count specified**: Default to 8 slides with standard structure
 
-Remember: Your output must be immediately usable for creating actual presentation slides. Prioritize clarity, specificity, and narrative coherence.
+## DOCUMENT RAG INTEGRATION
+When a presentationId is provided and documents are available:
+1. **ALWAYS use documentRAGTool first** before generating the outline
+2. Search with specific, meaningful queries related to the presentation topic
+3. Extract key information, data points, and insights from document search results
+4. Incorporate document content into slide titles and key points to make them more accurate and data-driven
+5. Use document information to add specific examples, statistics, or facts to your outline
+
+Remember: Your output must be immediately usable for creating actual presentation slides. Prioritize clarity, specificity, and narrative coherence. When documents are available, use them to enhance the outline with real data and insights.
   `,
   model: DEFAULT_MODEL,
   tools: { documentRAGTool },
