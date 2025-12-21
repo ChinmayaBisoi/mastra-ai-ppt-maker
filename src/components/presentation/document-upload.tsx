@@ -66,8 +66,12 @@ export function DocumentUpload({
     }
 
     // Process all valid files
-    const results: Array<{ success: boolean; fileName: string; error?: string }> = [];
-    
+    const results: Array<{
+      success: boolean;
+      fileName: string;
+      error?: string;
+    }> = [];
+
     for (const file of validFiles) {
       try {
         // Prepare document data - handle missing properties
@@ -77,12 +81,12 @@ export function DocumentUpload({
           fileSize: file.size ?? 0, // UploadThing might not provide size
           fileType: file.type || "application/octet-stream",
         };
-        
+
         console.log("Sending document data to API:", documentData);
 
         // Save document to database
         const response = await fetch(
-          `/api/presentations/${presentationId}/documents`,
+          `/api/presentation/${presentationId}/documents`,
           {
             method: "POST",
             headers: {
@@ -94,9 +98,15 @@ export function DocumentUpload({
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          const errorMessage = errorData.error || `Failed to save document: ${response.status} ${response.statusText}`;
+          const errorMessage =
+            errorData.error ||
+            `Failed to save document: ${response.status} ${response.statusText}`;
           console.error(`API error for ${file.name}:`, errorMessage, errorData);
-          results.push({ success: false, fileName: file.name, error: errorMessage });
+          results.push({
+            success: false,
+            fileName: file.name,
+            error: errorMessage,
+          });
           continue;
         }
 
@@ -109,7 +119,8 @@ export function DocumentUpload({
         results.push({
           success: false,
           fileName: file.name,
-          error: error instanceof Error ? error.message : "Failed to save document",
+          error:
+            error instanceof Error ? error.message : "Failed to save document",
         });
       }
     }
@@ -117,8 +128,12 @@ export function DocumentUpload({
     // Set error message if any files failed
     const failedFiles = results.filter((r) => !r.success);
     if (failedFiles.length > 0) {
-      const errorMessages = failedFiles.map((f) => `${f.fileName}: ${f.error || "Unknown error"}`);
-      setUploadError(`Failed to save ${failedFiles.length} file(s): ${errorMessages.join("; ")}`);
+      const errorMessages = failedFiles.map(
+        (f) => `${f.fileName}: ${f.error || "Unknown error"}`
+      );
+      setUploadError(
+        `Failed to save ${failedFiles.length} file(s): ${errorMessages.join("; ")}`
+      );
     } else if (invalidFiles.length === 0) {
       setUploadError(null);
     }

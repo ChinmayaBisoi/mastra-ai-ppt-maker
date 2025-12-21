@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, ChevronRight } from "lucide-react";
+import { ChevronRight, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 function formatRelativeTime(date: Date): string {
   const now = new Date();
@@ -120,7 +119,7 @@ export function PresentationsList() {
           <div
             key={presentation.id}
             className="group relative rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-6 cursor-pointer transition-all duration-300 hover:border-border hover:bg-card hover:shadow-lg hover:shadow-black/5"
-            onClick={() => router.push(`/create/${presentation.id}`)}
+            onClick={() => router.push(`/presentation/${presentation.id}`)}
           >
             <div className="flex flex-col h-full">
               <div className="flex-1 mb-4">

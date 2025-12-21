@@ -54,7 +54,7 @@ export function DocumentDeleteDialog({
 
     try {
       const response = await fetch(
-        `/api/presentations/${presentationId}/documents/${document.id}`,
+        `/api/presentation/${presentationId}/documents/${document.id}`,
         {
           method: "DELETE",
         }
@@ -98,11 +98,7 @@ export function DocumentDeleteDialog({
           </div>
         )}
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            disabled={isDeleting}
-          >
+          <Button variant="outline" onClick={handleClose} disabled={isDeleting}>
             Cancel
           </Button>
           <Button
@@ -124,4 +120,3 @@ export function DocumentDeleteDialog({
     </Dialog>
   );
 }
-

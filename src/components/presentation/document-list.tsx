@@ -47,7 +47,7 @@ export function DocumentList({
   const fetchDocuments = useCallback(async () => {
     try {
       const response = await fetch(
-        `/api/presentations/${presentationId}/documents`
+        `/api/presentation/${presentationId}/documents`
       );
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -89,7 +89,7 @@ export function DocumentList({
 
     try {
       const response = await fetch(
-        `/api/presentations/${presentationId}/documents/${document.id}/process`,
+        `/api/presentation/${presentationId}/documents/${document.id}/process`,
         {
           method: "POST",
         }

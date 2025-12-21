@@ -1,6 +1,6 @@
 import BreadcrumbHeader from "@/components/breadcrumb-header";
 import PageLayout from "@/components/layouts/page-layout";
-import { PresentationsList } from "@/components/presentation-list";
+import { PresentationsList } from "@/components/presentations-list";
 import { Suspense } from "react";
 
 export default function PresentationsPage() {
