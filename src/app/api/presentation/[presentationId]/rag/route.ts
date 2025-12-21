@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { documentRAGTool } from "@/mastra/tools/document-rag-tool";
+import { RuntimeContext } from "@mastra/core/di";
 
 export async function POST(
   request: NextRequest,
@@ -21,13 +22,10 @@ export async function POST(
     const { query, topK = 5 } = body;
 
     if (!query) {
-      return new Response(
-        JSON.stringify({ error: "Query is required" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Query is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Verify user owns presentation
@@ -44,20 +42,30 @@ export async function POST(
     });
 
     if (!presentation || presentation.userId !== user.id) {
+      return new Response(JSON.stringify({ error: "Presentation not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Execute RAG search
+    if (!documentRAGTool.execute) {
       return new Response(
-        JSON.stringify({ error: "Presentation not found" }),
+        JSON.stringify({ error: "RAG tool execute method not available" }),
         {
-          status: 404,
+          status: 500,
           headers: { "Content-Type": "application/json" },
         }
       );
     }
 
-    // Execute RAG search
     const result = await documentRAGTool.execute({
-      query,
-      presentationId,
-      topK,
+      context: {
+        query,
+        presentationId,
+        topK,
+      },
+      runtimeContext: new RuntimeContext(),
     });
 
     return new Response(JSON.stringify(result), {
@@ -67,8 +75,7 @@ export async function POST(
     console.error("RAG query error:", error);
     return new Response(
       JSON.stringify({
-        error:
-          error instanceof Error ? error.message : "RAG query failed",
+        error: error instanceof Error ? error.message : "RAG query failed",
       }),
       {
         status: 500,
@@ -77,4 +84,3 @@ export async function POST(
     );
   }
 }
-

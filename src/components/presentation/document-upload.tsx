@@ -10,7 +10,13 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { FileText, Loader2 } from "lucide-react";
-import type { UploadFileResponse } from "uploadthing/client";
+// UploadButton returns an array of file objects
+type UploadFileResponse = {
+  name: string;
+  url: string;
+  size: number;
+  type?: string; // Optional file type
+};
 
 interface DocumentUploadProps {
   presentationId: string;

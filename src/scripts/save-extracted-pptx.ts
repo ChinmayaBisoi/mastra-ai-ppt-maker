@@ -1,14 +1,15 @@
 #!/usr/bin/env tsx
 /**
  * Script to extract PPTX data using extractPptx and save to JSON
- * 
+ *
  * Usage:
  *   npx tsx src/scripts/save-extracted-pptx.ts <path-to-pptx-file> [output-path]
- * 
+ *
  * Example:
  *   npx tsx src/scripts/save-extracted-pptx.ts test-pptx-files/cream-neutral-minimalist.pptx
  */
 
+// @ts-ignore - jszip-xml2js-parser may not exist
 import { extractPptx } from "../utils/jszip-xml2js-parser";
 import fs from "fs";
 import path from "path";
@@ -18,7 +19,9 @@ async function main() {
   const outputPath = process.argv[3];
 
   if (!filePath) {
-    console.error("Usage: npx tsx src/scripts/save-extracted-pptx.ts <path-to-pptx-file> [output-path]");
+    console.error(
+      "Usage: npx tsx src/scripts/save-extracted-pptx.ts <path-to-pptx-file> [output-path]"
+    );
     process.exit(1);
   }
 
@@ -80,31 +83,43 @@ async function main() {
 
     // Print summary
     console.log("=== Summary ===");
-    extracted.slides.forEach((slide, i) => {
+    extracted.slides.forEach((slide: any, i: number) => {
       console.log(`\nSlide ${i + 1}: ${slide.name}`);
       console.log(`  Elements: ${slide.content.length}`);
       console.log(`  Media references: ${slide.mediaNames.length}`);
       if (slide.content.length > 0) {
-        slide.content.forEach((el, elIdx) => {
+        slide.content.forEach((el: any, elIdx: number) => {
           const textPreview = el.text.join(" ").substring(0, 60);
           const ellipsis = textPreview.length >= 60 ? "..." : "";
-          console.log(`    ${elIdx + 1}. [${el.type}] ${textPreview}${ellipsis}`);
+          console.log(
+            `    ${elIdx + 1}. [${el.type}] ${textPreview}${ellipsis}`
+          );
         });
       }
     });
 
     if (extracted.media.length > 0) {
       console.log("\n=== Media Files (" + extracted.media.length + ") ===");
-      extracted.media.forEach((media, i) => {
+      extracted.media.forEach((media: any, i: number) => {
         const sizeKB = Math.round(media.content.length / 1024);
-        console.log("  " + (i + 1) + ". " + media.name + " (~" + sizeKB + " KB)");
+        console.log(
+          "  " + (i + 1) + ". " + media.name + " (~" + sizeKB + " KB)"
+        );
       });
     }
 
     if (extracted.notes.length > 0) {
       console.log("\n=== Notes (" + extracted.notes.length + ") ===");
-      extracted.notes.forEach((note, i) => {
-        console.log("  " + (i + 1) + ". " + note.name + " (" + note.content.length + " chars)");
+      extracted.notes.forEach((note: any, i: number) => {
+        console.log(
+          "  " +
+            (i + 1) +
+            ". " +
+            note.name +
+            " (" +
+            note.content.length +
+            " chars)"
+        );
       });
     }
   } catch (error) {
@@ -117,4 +132,3 @@ async function main() {
 }
 
 main();
-
