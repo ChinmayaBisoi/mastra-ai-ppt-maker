@@ -3,19 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  FileText,
-  Download,
-  Trash2,
-  ExternalLink,
-  RefreshCw,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
+import { RefreshCw, Loader2 } from "lucide-react";
 import { DocumentDeleteDialog } from "./document-delete-dialog";
-import { Badge } from "@/components/ui/badge";
-// Removed date-fns import - using native Date formatting
+import { DocumentReprocessDialog } from "./document-reprocess-dialog";
+import { DocumentStatusSummary } from "./document-status-summary";
+import { DocumentListItem } from "./document-list-item";
+import { toast } from "sonner";
 
 interface Document {
   id: string;
@@ -25,6 +18,29 @@ interface Document {
   fileType: string;
   uploadedAt: string;
   processedAt: string | null;
+}
+
+interface DocumentStatus {
+  exists: boolean;
+  fileName?: string;
+  uploadedAt?: string;
+  processedAt?: string | null;
+  isProcessed: boolean;
+  chunkCount: number;
+  status:
+    | "not_processed"
+    | "fully_processed"
+    | "marked_processed_but_no_chunks"
+    | "chunks_exist_but_not_marked";
+  warning?: "low_chunk_count" | "single_chunk" | null;
+}
+
+interface PresentationStatusSummary {
+  total: number;
+  processed: number;
+  notProcessed: number;
+  totalChunks: number;
+  documents: (DocumentStatus & { documentId: string })[];
 }
 
 interface DocumentListProps {
@@ -42,7 +58,20 @@ export function DocumentList({
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(
     null
   );
+  const [reprocessDialogOpen, setReprocessDialogOpen] = useState(false);
+  const [documentToReprocess, setDocumentToReprocess] =
+    useState<Document | null>(null);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [reprocessingIds, setReprocessingIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [documentStatuses, setDocumentStatuses] = useState<
+    Map<string, DocumentStatus>
+  >(new Map());
+  const [statusSummary, setStatusSummary] =
+    useState<PresentationStatusSummary | null>(null);
+  const [loadingStatus, setLoadingStatus] = useState(false);
+  const [expandedStatus, setExpandedStatus] = useState<Set<string>>(new Set());
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -53,7 +82,6 @@ export function DocumentList({
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error || "Failed to fetch documents";
         console.error("Error fetching documents:", errorMessage);
-        // Don't throw - just log and show empty state
         setDocuments([]);
         return;
       }
@@ -69,7 +97,69 @@ export function DocumentList({
 
   useEffect(() => {
     fetchDocuments();
-  }, [presentationId, fetchDocuments]);
+  }, [fetchDocuments]);
+
+  const fetchDocumentStatuses = useCallback(async () => {
+    setLoadingStatus(true);
+    try {
+      const response = await fetch(
+        `/api/presentation/${presentationId}/documents/status`
+      );
+      if (response.ok) {
+        const summary: PresentationStatusSummary = await response.json();
+        setStatusSummary(summary);
+        const statusMap = new Map<string, DocumentStatus>();
+        summary.documents.forEach((doc) => {
+          if (doc.exists && doc.documentId) {
+            statusMap.set(doc.documentId, doc);
+          }
+        });
+        setDocumentStatuses(statusMap);
+      }
+    } catch (error) {
+      console.error("Error fetching document statuses:", error);
+    } finally {
+      setLoadingStatus(false);
+    }
+  }, [presentationId]);
+
+  const fetchSingleDocumentStatus = useCallback(
+    async (documentId: string) => {
+      try {
+        const response = await fetch(
+          `/api/presentation/${presentationId}/documents/${documentId}/status`
+        );
+        if (response.ok) {
+          const status: DocumentStatus = await response.json();
+          setDocumentStatuses((prev) => {
+            const next = new Map(prev);
+            next.set(documentId, status);
+            return next;
+          });
+          return status;
+        }
+      } catch (error) {
+        console.error("Error fetching document status:", error);
+      }
+      return null;
+    },
+    [presentationId]
+  );
+
+  const toggleStatusExpansion = (documentId: string) => {
+    setExpandedStatus((prev) => {
+      const next = new Set(prev);
+      if (next.has(documentId)) {
+        next.delete(documentId);
+      } else {
+        next.add(documentId);
+        if (!documentStatuses.has(documentId)) {
+          fetchSingleDocumentStatus(documentId);
+        }
+      }
+      return next;
+    });
+  };
 
   const openDeleteDialog = (document: Document) => {
     setDocumentToDelete(document);
@@ -102,7 +192,6 @@ export function DocumentList({
 
       const data = await response.json();
 
-      // Update document in state
       setDocuments((prev) =>
         prev.map((doc) =>
           doc.id === document.id
@@ -110,13 +199,20 @@ export function DocumentList({
             : doc
         )
       );
+
+      await fetchSingleDocumentStatus(document.id);
+
+      toast.success("Document processed successfully", {
+        description: `${document.fileName} has been processed and is ready for RAG search.`,
+      });
     } catch (error) {
       console.error("Error processing document:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to process document. Please try again."
-      );
+      toast.error("Failed to process document", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to process document. Please try again.",
+      });
     } finally {
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -126,32 +222,56 @@ export function DocumentList({
     }
   };
 
+  const openReprocessDialog = (document: Document) => {
+    setDocumentToReprocess(document);
+    setReprocessDialogOpen(true);
+  };
+
+  const handleReprocessSuccess = async () => {
+    if (!documentToReprocess) return;
+
+    setReprocessingIds((prev) => new Set(prev).add(documentToReprocess.id));
+
+    try {
+      await fetchDocuments();
+
+      setDocumentStatuses((prev) => {
+        const next = new Map(prev);
+        next.delete(documentToReprocess.id);
+        return next;
+      });
+      await fetchSingleDocumentStatus(documentToReprocess.id);
+
+      toast.success("Document reprocessed successfully", {
+        description: `${documentToReprocess.fileName} has been reprocessed and chunks have been regenerated.`,
+      });
+    } catch (error) {
+      console.error("Error refreshing document after reprocess:", error);
+    } finally {
+      setReprocessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(documentToReprocess.id);
+        return next;
+      });
+    }
+  };
+
+  const handleReprocessDialogClose = (open: boolean) => {
+    setReprocessDialogOpen(open);
+    if (!open) {
+      setDocumentToReprocess(null);
+    }
+  };
+
   const isProcessing = (documentId: string) => {
-    return processingIds.has(documentId);
+    return processingIds.has(documentId) || reprocessingIds.has(documentId);
   };
 
-  const getProcessingStatus = (document: Document) => {
-    if (isProcessing(document.id)) {
-      return { status: "processing", label: "Processing..." };
+  useEffect(() => {
+    if (documents.length > 0) {
+      fetchDocumentStatuses();
     }
-    if (document.processedAt) {
-      return { status: "processed", label: "Processed" };
-    }
-    return { status: "pending", label: "Not Processed" };
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  const getFileIcon = (fileType: string) => {
-    if (fileType.includes("word") || fileType.includes("document")) {
-      return <FileText className="h-5 w-5 text-blue-600" />;
-    }
-    return <FileText className="h-5 w-5 text-gray-600" />;
-  };
+  }, [documents.length, fetchDocumentStatuses]);
 
   if (loading) {
     return (
@@ -184,104 +304,42 @@ export function DocumentList({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Documents ({documents.length})</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Documents ({documents.length})</CardTitle>
+          <div className="flex items-center gap-2">
+            <DocumentStatusSummary summary={statusSummary} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchDocumentStatuses}
+              disabled={loadingStatus}
+              title="Refresh document processing status"
+            >
+              {loadingStatus ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
           {documents.map((document) => (
-            <div
+            <DocumentListItem
               key={document.id}
-              className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                {getFileIcon(document.fileType)}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {document.fileName}
-                  </p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>{formatFileSize(document.fileSize)}</span>
-                    <span>•</span>
-                    <span>
-                      {new Date(document.uploadedAt).toLocaleDateString()}
-                    </span>
-                    <span>•</span>
-                    {(() => {
-                      const { status, label } = getProcessingStatus(document);
-                      return (
-                        <Badge
-                          variant={
-                            status === "processed"
-                              ? "default"
-                              : status === "processing"
-                                ? "secondary"
-                                : "outline"
-                          }
-                          className="text-xs"
-                        >
-                          {status === "processing" && (
-                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                          )}
-                          {status === "processed" && (
-                            <CheckCircle2 className="h-3 w-3 mr-1" />
-                          )}
-                          {status === "pending" && (
-                            <AlertCircle className="h-3 w-3 mr-1" />
-                          )}
-                          {label}
-                        </Badge>
-                      );
-                    })()}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {!document.processedAt && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleProcessDocument(document)}
-                    disabled={isProcessing(document.id)}
-                    title="Process document for RAG"
-                  >
-                    {isProcessing(document.id) ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => window.open(document.fileUrl, "_blank")}
-                  title="Open in new tab"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    const link = window.document.createElement("a");
-                    link.href = document.fileUrl;
-                    link.download = document.fileName;
-                    link.click();
-                  }}
-                  title="Download"
-                >
-                  <Download className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => openDeleteDialog(document)}
-                  title="Delete"
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
-            </div>
+              document={document}
+              status={documentStatuses.get(document.id)}
+              isExpanded={expandedStatus.has(document.id)}
+              isProcessing={isProcessing(document.id)}
+              isReprocessing={reprocessingIds.has(document.id)}
+              onToggleDetails={() => toggleStatusExpansion(document.id)}
+              onProcess={() => handleProcessDocument(document)}
+              onReprocess={() => openReprocessDialog(document)}
+              onDelete={() => openDeleteDialog(document)}
+              onFetchStatus={() => fetchSingleDocumentStatus(document.id)}
+            />
           ))}
         </div>
       </CardContent>
@@ -292,6 +350,14 @@ export function DocumentList({
         document={documentToDelete}
         presentationId={presentationId}
         onSuccess={handleDeleteSuccess}
+      />
+
+      <DocumentReprocessDialog
+        open={reprocessDialogOpen}
+        onOpenChange={handleReprocessDialogClose}
+        document={documentToReprocess}
+        presentationId={presentationId}
+        onSuccess={handleReprocessSuccess}
       />
     </Card>
   );

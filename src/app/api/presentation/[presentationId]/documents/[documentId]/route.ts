@@ -53,12 +53,18 @@ export async function DELETE(
     });
 
     // Clean up vector store chunks for this document
-    deleteDocumentChunks(documentId).catch((error) => {
+    // Note: We don't throw on error here - document deletion succeeds even if cleanup fails
+    // This ensures the document is removed from the database even if vector cleanup has issues
+    try {
+      await deleteDocumentChunks(documentId, false); // false = don't throw on error
+      console.log(`Successfully cleaned up vector chunks for document ${documentId}`);
+    } catch (error) {
+      // Log error but don't fail the deletion - best effort cleanup
       console.error(
         `Failed to cleanup vector chunks for document ${documentId}:`,
         error
       );
-    });
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { "Content-Type": "application/json" },

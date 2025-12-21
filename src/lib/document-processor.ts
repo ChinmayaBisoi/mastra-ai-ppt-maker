@@ -75,6 +75,22 @@ export async function processDocumentForRAG(
       return;
     }
 
+    // Warn if document has very few chunks - might indicate issues
+    if (chunks.length === 1) {
+      console.warn(
+        `Document ${documentId} (${fileName}) has only 1 chunk. This may indicate:
+        - Document is very short (< 512 characters)
+        - Text extraction may have issues
+        - RAG search will be less granular (entire document returned for any query)
+        Consider reviewing the document content.`
+      );
+    } else if (chunks.length < 3) {
+      console.warn(
+        `Document ${documentId} (${fileName}) has only ${chunks.length} chunks. 
+        This may limit RAG search granularity.`
+      );
+    }
+
     // Generate embeddings
     const { embeddings } = await embedMany({
       values: chunks.map((chunk) => chunk.text),
@@ -109,41 +125,109 @@ export async function processDocumentForRAG(
   }
 }
 
-export async function deleteDocumentChunks(documentId: string) {
+export async function deleteDocumentChunks(
+  documentId: string,
+  throwOnError = false // New parameter: throw errors during reprocessing
+) {
   try {
     await initRAG();
 
-    // PgVector from Mastra stores vectors in a table managed by the library
-    // We need to use raw SQL to delete vectors with matching documentId in metadata
-    // The exact table name depends on Mastra's implementation, but it's typically
-    // based on the indexName. For now, we'll use a generic approach.
+    // PgVector from Mastra stores vectors in a table named after the indexName
+    // Confirmed table name: "document_chunks" (matches indexName)
     const { prisma } = await import("./prisma");
-
-    // Try to delete vectors by querying the vector store's underlying table
-    // Note: This assumes Mastra's PgVector stores metadata in a JSONB column
-    // Adjust table name and column names based on actual Mastra PgVector implementation
     try {
-      // Attempt to delete using raw SQL - table name may vary
-      await prisma.$executeRawUnsafe(
-        `DELETE FROM vectors WHERE metadata->>'documentId' = $1`,
+      // Delete from the document_chunks table (confirmed table name)
+      const result = await prisma.$executeRawUnsafe(
+        `DELETE FROM "document_chunks" WHERE metadata->>'documentId' = $1`,
         documentId
       );
-      console.log(`Deleted vector chunks for document ${documentId}`);
+
+      console.log(`Deleted ${result} vector chunks for document ${documentId}`);
+
+      // Verify deletion worked by checking chunk count
+      const checkResults = await vectorStore.query({
+        indexName: "document_chunks",
+        queryVector: new Array(768).fill(0), // Dummy vector for existence check
+        topK: 1000, // Get all chunks to verify
+        filter: {
+          documentId: { $eq: documentId },
+        },
+      });
+
+      if (checkResults.length > 0) {
+        const errorMsg = `Deletion reported success but ${checkResults.length} chunks still exist for document ${documentId}`;
+        console.error(errorMsg);
+
+        if (throwOnError) {
+          throw new Error(errorMsg);
+        }
+      } else {
+        console.log(`Verified: All chunks deleted for document ${documentId}`);
+      }
     } catch (sqlError: unknown) {
-      // If table doesn't exist or has different structure, try alternative
       const errorMessage =
         sqlError instanceof Error ? sqlError.message : String(sqlError);
-      console.warn(
-        `Could not delete vectors using standard table, trying alternative:`,
+      console.error(
+        `Error deleting chunks from document_chunks table:`,
         errorMessage
       );
-      // Vector cleanup is best-effort - document deletion should still succeed
+
+      if (throwOnError) {
+        throw sqlError instanceof Error
+          ? sqlError
+          : new Error(String(sqlError));
+      }
     }
   } catch (error) {
     console.error(
       `Failed to delete vector chunks for document ${documentId}:`,
       error
     );
-    // Don't throw - document deletion should succeed even if vector cleanup fails
+
+    if (throwOnError) {
+      throw error;
+    }
+  }
+}
+
+/**
+ * Reprocess a document: delete existing chunks and regenerate them
+ * Useful when chunking issues are detected (e.g., only 1 chunk, incorrect chunks)
+ */
+export async function reprocessDocumentForRAG(
+  documentId: string,
+  fileUrl: string,
+  fileType: string,
+  fileName: string,
+  presentationId: string
+) {
+  try {
+    console.log(`Reprocessing document ${documentId} (${fileName})...`);
+
+    // First, delete existing chunks - THROW on error during reprocessing
+    await deleteDocumentChunks(documentId, true); // Pass true to throw on error
+    console.log(`Deleted existing chunks for document ${documentId}`);
+
+    // Reset processedAt timestamp to null before reprocessing
+    await prisma.document.update({
+      where: { id: documentId },
+      data: { processedAt: null },
+    });
+
+    // Now process the document again
+    await processDocumentForRAG(
+      documentId,
+      fileUrl,
+      fileType,
+      fileName,
+      presentationId
+    );
+
+    console.log(
+      `Successfully reprocessed document ${documentId} (${fileName})`
+    );
+  } catch (error) {
+    console.error(`Failed to reprocess document ${documentId} for RAG:`, error);
+    throw error;
   }
 }
