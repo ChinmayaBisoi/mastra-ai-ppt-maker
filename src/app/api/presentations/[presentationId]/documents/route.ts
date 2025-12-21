@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { processDocumentForRAG } from "@/lib/document-processor";
 
 export async function GET(
   request: NextRequest,
@@ -175,6 +176,21 @@ export async function POST(
     });
 
     console.log("Document created successfully:", document.id);
+
+    // Process document for RAG asynchronously (don't block response)
+    processDocumentForRAG(
+      document.id,
+      fileUrl,
+      fileType,
+      fileName,
+      presentationId
+    ).catch((error) => {
+      console.error(
+        `Failed to process document ${document.id} for RAG:`,
+        error
+      );
+    });
+
     return new Response(JSON.stringify(document), {
       status: 201,
       headers: { "Content-Type": "application/json" },

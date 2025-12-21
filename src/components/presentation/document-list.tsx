@@ -3,8 +3,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, Trash2, ExternalLink } from "lucide-react";
+import {
+  FileText,
+  Download,
+  Trash2,
+  ExternalLink,
+  RefreshCw,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 import { DocumentDeleteDialog } from "./document-delete-dialog";
+import { Badge } from "@/components/ui/badge";
 // Removed date-fns import - using native Date formatting
 
 interface Document {
@@ -14,6 +24,7 @@ interface Document {
   fileSize: number;
   fileType: string;
   uploadedAt: string;
+  processedAt: string | null;
 }
 
 interface DocumentListProps {
@@ -31,6 +42,7 @@ export function DocumentList({
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(
     null
   );
+  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -57,7 +69,7 @@ export function DocumentList({
 
   useEffect(() => {
     fetchDocuments();
-  }, [presentationId]);
+  }, [presentationId, fetchDocuments]);
 
   const openDeleteDialog = (document: Document) => {
     setDocumentToDelete(document);
@@ -70,6 +82,62 @@ export function DocumentList({
       onDocumentDeleted?.();
     }
     setDocumentToDelete(null);
+  };
+
+  const handleProcessDocument = async (document: Document) => {
+    setProcessingIds((prev) => new Set(prev).add(document.id));
+
+    try {
+      const response = await fetch(
+        `/api/presentations/${presentationId}/documents/${document.id}/process`,
+        {
+          method: "POST",
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to process document");
+      }
+
+      const data = await response.json();
+
+      // Update document in state
+      setDocuments((prev) =>
+        prev.map((doc) =>
+          doc.id === document.id
+            ? { ...doc, processedAt: data.document.processedAt }
+            : doc
+        )
+      );
+    } catch (error) {
+      console.error("Error processing document:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to process document. Please try again."
+      );
+    } finally {
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(document.id);
+        return next;
+      });
+    }
+  };
+
+  const isProcessing = (documentId: string) => {
+    return processingIds.has(documentId);
+  };
+
+  const getProcessingStatus = (document: Document) => {
+    if (isProcessing(document.id)) {
+      return { status: "processing", label: "Processing..." };
+    }
+    if (document.processedAt) {
+      return { status: "processed", label: "Processed" };
+    }
+    return { status: "pending", label: "Not Processed" };
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -137,10 +205,52 @@ export function DocumentList({
                     <span>
                       {new Date(document.uploadedAt).toLocaleDateString()}
                     </span>
+                    <span>•</span>
+                    {(() => {
+                      const { status, label } = getProcessingStatus(document);
+                      return (
+                        <Badge
+                          variant={
+                            status === "processed"
+                              ? "default"
+                              : status === "processing"
+                                ? "secondary"
+                                : "outline"
+                          }
+                          className="text-xs"
+                        >
+                          {status === "processing" && (
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          )}
+                          {status === "processed" && (
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                          )}
+                          {status === "pending" && (
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                          )}
+                          {label}
+                        </Badge>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {!document.processedAt && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleProcessDocument(document)}
+                    disabled={isProcessing(document.id)}
+                    title="Process document for RAG"
+                  >
+                    {isProcessing(document.id) ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="icon"

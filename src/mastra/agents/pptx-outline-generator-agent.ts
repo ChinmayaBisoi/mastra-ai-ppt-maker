@@ -3,6 +3,7 @@ import { Memory } from "@mastra/memory";
 import { LibSQLStore } from "@mastra/libsql";
 // import { PromptInjectionDetector } from "@mastra/core/processors";
 import { AI_MODELS } from "@/constants/ai-models";
+import { documentRAGTool } from "../tools/document-rag-tool";
 
 export const pptxOutlineGeneratorAgent = new Agent({
   id: "pptx-outline-generator-agent",
@@ -66,6 +67,7 @@ Transform user input into a complete, numbered presentation outline with exactly
 Remember: Your output must be immediately usable for creating actual presentation slides. Prioritize clarity, specificity, and narrative coherence.
   `,
   model: AI_MODELS.FREE.GPT_OSS_20B,
+  tools: { documentRAGTool },
   //   inputProcessors: [
   //     new PromptInjectionDetector({
   //       model: AI_MODELS.FREE.GPT_OSS_20B,

@@ -35,11 +35,17 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const prompt = `Generate a presentation outline with exactly ${slideCount} slides based on the following description:
+    // Build prompt with optional RAG context
+    let prompt = `Generate a presentation outline with exactly ${slideCount} slides based on the following description:
 
-${description}
+${description}`;
 
-Please create a structured outline with ${slideCount} slides. Each slide should have:
+    // If presentationId exists, instruct agent to use RAG tool
+    if (presentationId) {
+      prompt += `\n\nIMPORTANT: This presentation has ID "${presentationId}". If the user has uploaded documents for this presentation, use the documentRAGTool to search for relevant information from those documents to enhance the outline. Incorporate relevant facts, data, or insights from uploaded documents when appropriate.`;
+    }
+
+    prompt += `\n\nPlease create a structured outline with ${slideCount} slides. Each slide should have:
 - A descriptive title (3-8 words, specific and actionable)
 - 2-5 key points covering the main content 
 

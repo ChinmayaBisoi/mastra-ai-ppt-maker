@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { deleteDocumentChunks } from "@/lib/document-processor";
 
 export async function DELETE(
   request: NextRequest,
@@ -49,6 +50,14 @@ export async function DELETE(
         id: documentId,
         presentationId,
       },
+    });
+
+    // Clean up vector store chunks for this document
+    deleteDocumentChunks(documentId).catch((error) => {
+      console.error(
+        `Failed to cleanup vector chunks for document ${documentId}:`,
+        error
+      );
     });
 
     return new Response(JSON.stringify({ success: true }), {

@@ -41,4 +41,5 @@ model Document {
   fileSize       Int
   fileType       String
   uploadedAt     DateTime     @default(now())
+  processedAt    DateTime? // Timestamp when document was processed for RAG
 }

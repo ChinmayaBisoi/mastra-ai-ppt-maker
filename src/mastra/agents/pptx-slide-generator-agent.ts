@@ -2,6 +2,7 @@ import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import { LibSQLStore } from "@mastra/libsql";
 import { AI_MODELS } from "@/constants/ai-models";
+import { documentRAGTool } from "../tools/document-rag-tool";
 
 export const pptxSlideGeneratorAgent = new Agent({
   id: "pptx-slide-generator-agent",
@@ -106,8 +107,12 @@ Return ONLY the HTML code for the slide content. The code should:
 - ✅ No overflow or overlapping elements
 
 Remember: Generate production-ready HTML code that can be directly embedded in an iframe and will render perfectly as a presentation slide.
+
+## DOCUMENT CONTEXT
+If the user has uploaded documents for this presentation, use the documentRAGTool to search for relevant information that can enhance the slide content. Incorporate relevant facts, data, or insights from uploaded documents when appropriate.
   `,
   model: AI_MODELS.FREE.GPT_OSS_20B,
+  tools: { documentRAGTool },
   memory: new Memory({
     storage: new LibSQLStore({
       url:
