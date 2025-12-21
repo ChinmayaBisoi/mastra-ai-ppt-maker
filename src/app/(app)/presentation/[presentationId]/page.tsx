@@ -12,12 +12,16 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Minus, Plus } from "lucide-react";
 import { Suspense, useState, useCallback, useEffect } from "react";
 import { usePresentationOutline } from "@/hooks/use-presentation-outline";
 import { presentationOutlineSchema } from "@/schema/ppt-outline";
 import type { z } from "zod";
 
 type PresentationOutline = z.infer<typeof presentationOutlineSchema>;
+
+const MIN_SLIDE_COUNT = 1;
+const MAX_SLIDE_COUNT = 16;
 
 function PresentationDetails() {
   const params = useParams();
@@ -33,6 +37,7 @@ function PresentationDetails() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [streamedText, setStreamedText] = useState("");
   const [slideCount, setSlideCount] = useState(8);
+  const [slideCountInput, setSlideCountInput] = useState("8");
   const [description, setDescription] = useState(userInput || "");
 
   // Update description when userInput changes
@@ -45,6 +50,17 @@ function PresentationDetails() {
   const handleGenerateOutline = useCallback(async () => {
     if (!description.trim() || isGenerating) return;
 
+    // Validate and clamp slideCount before submission
+    const currentCount = slideCount || 8;
+    const validSlideCount = Math.max(
+      MIN_SLIDE_COUNT,
+      Math.min(MAX_SLIDE_COUNT, Math.floor(currentCount) || 8)
+    );
+    if (validSlideCount !== currentCount) {
+      setSlideCount(validSlideCount);
+      setSlideCountInput(String(validSlideCount));
+    }
+
     setIsGenerating(true);
     setStreamedText("");
 
@@ -56,7 +72,7 @@ function PresentationDetails() {
         },
         body: JSON.stringify({
           description: description.trim(),
-          slideCount,
+          slideCount: validSlideCount,
           presentationId,
         }),
       });
@@ -156,41 +172,142 @@ function PresentationDetails() {
 
           {/* Generate Outline Form (if no outline exists) */}
           {!loadingOutline && !outline && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Generate Presentation Outline</CardTitle>
+            <Card className="border-2 shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl">
+                  Generate Presentation Outline
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Create a structured outline for your presentation
+                </p>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="description">Presentation Description</Label>
+                  <Label htmlFor="description" className="text-sm font-medium">
+                    Presentation Description
+                  </Label>
                   <Textarea
                     id="description"
                     placeholder="E.g., A quarterly business review covering sales performance, marketing initiatives, and future goals..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={4}
-                    className="resize-none"
+                    className="resize-none border-2 focus-visible:ring-2 focus-visible:ring-primary/20"
                     disabled={isGenerating}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="slideCount">Number of Slides</Label>
-                  <Input
-                    id="slideCount"
-                    type="number"
-                    min={1}
-                    max={50}
-                    value={slideCount}
-                    onChange={(e) =>
-                      setSlideCount(parseInt(e.target.value) || 8)
-                    }
-                    disabled={isGenerating}
-                  />
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="slideCount" className="text-sm font-medium">
+                      Number of Slides
+                    </Label>
+                    <span className="text-xs text-muted-foreground font-medium">
+                      {slideCount || 8} {slideCount === 1 ? "slide" : "slides"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const newValue = Math.max(1, slideCount - 1);
+                        setSlideCount(newValue);
+                        setSlideCountInput(String(newValue));
+                      }}
+                      disabled={isGenerating || slideCount <= 1}
+                      className="h-11 w-11 shrink-0 rounded-lg border-2 hover:bg-accent hover:border-primary/50 transition-all disabled:opacity-40"
+                      aria-label="Decrease slide count"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <div className="flex-1 relative">
+                      <Input
+                        id="slideCount"
+                        type="text"
+                        inputMode="numeric"
+                        value={slideCountInput}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Allow empty string, numbers, and backspace
+                          if (value === "" || /^\d*$/.test(value)) {
+                            setSlideCountInput(value);
+                            if (value !== "") {
+                              const num = parseInt(value, 10);
+                              if (
+                                !isNaN(num) &&
+                                num >= MIN_SLIDE_COUNT &&
+                                num <= MAX_SLIDE_COUNT
+                              ) {
+                                setSlideCount(num);
+                              }
+                            }
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const value = e.target.value.trim();
+                          if (value === "" || value === "0") {
+                            setSlideCount(8);
+                            setSlideCountInput("8");
+                          } else {
+                            const num = parseInt(value, 10);
+                            if (isNaN(num) || num < 1) {
+                              setSlideCount(8);
+                              setSlideCountInput("8");
+                            } else if (num > MAX_SLIDE_COUNT) {
+                              setSlideCount(MAX_SLIDE_COUNT);
+                              setSlideCountInput(String(MAX_SLIDE_COUNT));
+                            } else {
+                              setSlideCount(num);
+                              setSlideCountInput(String(num));
+                            }
+                          }
+                        }}
+                        disabled={isGenerating}
+                        className="h-11 text-center font-semibold text-lg focus-visible:ring-2 focus-visible:ring-primary/20 border-2"
+                        placeholder="8"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const newValue = Math.min(
+                          MAX_SLIDE_COUNT,
+                          slideCount + 1
+                        );
+                        setSlideCount(newValue);
+                        setSlideCountInput(String(newValue));
+                      }}
+                      disabled={isGenerating || slideCount >= MAX_SLIDE_COUNT}
+                      className="h-11 w-11 shrink-0 rounded-lg border-2 hover:bg-accent hover:border-primary/50 transition-all disabled:opacity-40"
+                      aria-label="Increase slide count"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
+                    <span className="font-medium">Min: 1</span>
+                    <span className="text-center italic">
+                      Recommended: 8-15
+                    </span>
+                    <span className="font-medium">Max: {MAX_SLIDE_COUNT}</span>
+                  </div>
                 </div>
                 <Button
                   onClick={handleGenerateOutline}
-                  disabled={!description.trim() || isGenerating}
-                  className="w-full"
+                  disabled={
+                    !description.trim() ||
+                    isGenerating ||
+                    !slideCount ||
+                    slideCount < MIN_SLIDE_COUNT ||
+                    slideCount > MAX_SLIDE_COUNT ||
+                    slideCountInput === "" ||
+                    slideCountInput === "0"
+                  }
+                  className="w-full h-11 text-base font-medium shadow-sm hover:shadow transition-shadow"
+                  size="lg"
                 >
                   {isGenerating ? "Generating..." : "Generate Outline"}
                 </Button>
