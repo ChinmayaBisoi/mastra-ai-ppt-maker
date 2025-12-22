@@ -102,10 +102,7 @@ export function PresentationSlideViewer({
   const handleDownloadPptx = useCallback(async () => {
     setIsDownloading(true);
     try {
-      const blob = await generatePptxFromSlides(
-        slides,
-        `presentation-${Date.now()}`
-      );
+      const blob = await generatePptxFromSlides(slides);
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;

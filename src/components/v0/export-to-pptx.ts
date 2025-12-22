@@ -21,13 +21,13 @@ export async function exportSlidesToPPTX(
 
     // Grab the main slide element inside the iframe (usually <body> or inner div)
     const slideNode =
-      iframeDoc.querySelector("body > div") || iframeDoc.body;
+      (iframeDoc.querySelector("body > div") as HTMLElement) || iframeDoc.body;
     if (!slideNode) continue;
 
     console.log(`Exporting slide ${i + 1}...`);
     
     try {
-      const dataUrl = await htmlToImage.toPng(slideNode, { quality: 1 });
+      const dataUrl = await htmlToImage.toPng(slideNode as HTMLElement, { quality: 1 });
 
       const slide = pptx.addSlide();
       slide.addImage({

@@ -1,3 +1,4 @@
+// @ts-ignore - unsplash-js package may not have types
 import { createApi } from "unsplash-js";
 
 export const unsplash = createApi({
