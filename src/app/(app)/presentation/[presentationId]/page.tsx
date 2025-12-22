@@ -1,7 +1,6 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { DocumentUpload } from "@/components/presentation/document-upload";
 import { DocumentList } from "@/components/presentation/document-list";
 import { OutlineSection } from "@/components/v0/outline-section";
 import { OutlineEditor } from "@/components/outline-editor";
@@ -147,14 +146,11 @@ function PresentationDetails() {
         description="Manage your presentation documents"
       >
         <div className="space-y-6">
-          <DocumentUpload
-            presentationId={presentationId}
-            onUploadComplete={handleUploadComplete}
-          />
           <DocumentList
             key={refreshKey}
             presentationId={presentationId}
             onDocumentDeleted={handleDocumentDeleted}
+            onDocumentUploaded={handleUploadComplete}
           />
           {/* User Input Display */}
           {userInput && (
@@ -322,6 +318,7 @@ function PresentationDetails() {
               onSave={handleOutlineSave}
               isStreaming={isGenerating}
               streamedText={streamedText}
+              presentationId={presentationId}
             />
           ) : isGenerating ? (
             <OutlineEditor
@@ -329,6 +326,7 @@ function PresentationDetails() {
               onSave={() => {}}
               isStreaming={true}
               streamedText={streamedText}
+              presentationId={presentationId}
             />
           ) : (
             <OutlineSection outline={null} loading={loadingOutline} />

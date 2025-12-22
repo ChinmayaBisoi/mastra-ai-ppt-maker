@@ -2,14 +2,10 @@
 
 import { useState } from "react";
 import { UploadButton } from "@/lib/uploadthing";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 import { FileText, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "../ui/button";
 // UploadButton returns an array of file objects
 type UploadFileResponse = {
   name: string;
@@ -33,11 +29,10 @@ export function DocumentUpload({
   onUploadComplete,
 }: DocumentUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleUploadComplete = async (res: UploadFileResponse[]) => {
     if (!res || res.length === 0) {
-      setUploadError("Upload failed");
+      toast.error("Upload failed");
       setIsUploading(false);
       return;
     }
@@ -61,7 +56,7 @@ export function DocumentUpload({
     });
 
     if (invalidFiles.length > 0) {
-      setUploadError(
+      toast.error(
         `Invalid file types: ${invalidFiles.join(", ")}. Only .docx and .txt files are allowed.`
       );
       // Continue processing valid files even if some are invalid
@@ -131,17 +126,15 @@ export function DocumentUpload({
       }
     }
 
-    // Set error message if any files failed
+    // Show error toast if any files failed
     const failedFiles = results.filter((r) => !r.success);
     if (failedFiles.length > 0) {
       const errorMessages = failedFiles.map(
         (f) => `${f.fileName}: ${f.error || "Unknown error"}`
       );
-      setUploadError(
+      toast.error(
         `Failed to save ${failedFiles.length} file(s): ${errorMessages.join("; ")}`
       );
-    } else if (invalidFiles.length === 0) {
-      setUploadError(null);
     }
 
     setIsUploading(false);
@@ -149,57 +142,39 @@ export function DocumentUpload({
 
   const handleUploadError = (error: Error) => {
     console.error("Upload error:", error);
-    setUploadError(error.message || "Upload failed");
+    toast.error(error.message || "Upload failed");
     setIsUploading(false);
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          Upload Documents
-        </CardTitle>
-        <CardDescription>
-          Upload .docx or .txt files to attach to this presentation
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <UploadButton
-            endpoint="documentUploader"
-            onClientUploadComplete={handleUploadComplete}
-            onUploadError={handleUploadError}
-            onUploadBegin={() => {
-              setIsUploading(true);
-              setUploadError(null);
-            }}
-            content={{
-              button: ({ ready }) => (
-                <div className="flex items-center gap-2">
-                  {isUploading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <FileText className="h-4 w-4" />
-                  )}
-                  {isUploading
-                    ? "Uploading..."
-                    : ready
-                      ? "Upload Document"
-                      : "Preparing..."}
-                </div>
-              ),
-            }}
-            appearance={{
-              button:
-                "ut-ready:bg-primary ut-ready:text-primary-foreground ut-uploading:cursor-not-allowed ut-uploading:opacity-50",
-            }}
-          />
-          {uploadError && (
-            <p className="text-sm text-destructive">{uploadError}</p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="w-fit ml-auto">
+      <UploadButton
+        endpoint="documentUploader"
+        onClientUploadComplete={handleUploadComplete}
+        onUploadError={handleUploadError}
+        onUploadBegin={() => {
+          setIsUploading(true);
+        }}
+        className="items-end"
+        content={{
+          button: ({ ready }) => (
+            <>
+              {isUploading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileText className="h-4 w-4" />
+              )}
+              {isUploading ? "Uploading..." : ready ? "Upload" : "..."}
+            </>
+          ),
+        }}
+        appearance={{
+          button: cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "ut-ready:bg-primary ut-ready:text-primary-foreground ut-uploading:cursor-not-allowed ut-uploading:opacity-50 h-8 px-3 text-sm font-medium rounded-md inline-flex items-center justify-center gap-2"
+          ),
+        }}
+      />
+    </div>
   );
 }

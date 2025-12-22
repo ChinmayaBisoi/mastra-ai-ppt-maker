@@ -111,9 +111,8 @@ IMPORTANT:
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          let fullText = "";
+          // Stream text chunks for progress updates
           for await (const chunk of response.textStream) {
-            fullText += chunk;
             // Send each chunk as it arrives
             controller.enqueue(
               encoder.encode(
@@ -122,161 +121,112 @@ IMPORTANT:
             );
           }
 
-          // After streaming completes, parse and validate the outline
+          // After streaming completes, get the structured output
           try {
-            // Clean the text - remove markdown code blocks if present
-            let cleanedText = fullText.trim();
+            // Get the structured object directly from the response
+            // This ensures we get the validated outline, not tool outputs
+            const parsed = await response.object;
 
-            // Remove markdown code blocks
-            cleanedText = cleanedText
-              .replace(/```json\s*/g, "")
-              .replace(/```\s*/g, "");
-            cleanedText = cleanedText.trim();
-
-            // Try to extract JSON from the response - look for JSON object
-            let jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
-
-            // If no match, try to find JSON array (though we expect object)
-            if (!jsonMatch) {
-              jsonMatch = cleanedText.match(/\[[\s\S]*\]/);
+            if (!parsed) {
+              throw new Error("No structured output received from agent");
             }
 
-            if (jsonMatch) {
-              let parsed;
-              try {
-                parsed = JSON.parse(jsonMatch[0]);
-              } catch (parseError) {
-                console.error("JSON parse error:", parseError);
-                // Try to fix common JSON issues
-                const fixedJson = jsonMatch[0]
-                  .replace(/,(\s*[}\]])/g, "$1") // Remove trailing commas
-                  .replace(/([{,]\s*)(\w+)(\s*):/g, '$1"$2":'); // Add quotes to keys
-                try {
-                  parsed = JSON.parse(fixedJson);
-                } catch {
-                  throw new Error("Failed to parse JSON even after fixing");
-                }
-              }
+            // Validate the parsed object
+            if (!parsed || typeof parsed !== "object") {
+              throw new Error("Parsed output is not an object");
+            }
 
-              // Validate the parsed JSON
-              if (!parsed || typeof parsed !== "object") {
-                throw new Error("Parsed JSON is not an object");
-              }
+            // Ensure slides array exists and is not empty
+            if (!parsed.slides || !Array.isArray(parsed.slides)) {
+              throw new Error("Missing or invalid slides array in response");
+            }
 
-              // Ensure slides array exists and is not empty
-              if (!parsed.slides || !Array.isArray(parsed.slides)) {
-                throw new Error("Missing or invalid slides array in response");
-              }
+            if (parsed.slides.length === 0) {
+              throw new Error(
+                "Slides array is empty - model did not generate any slides"
+              );
+            }
 
-              if (parsed.slides.length === 0) {
+            // Validate that we have the expected number of slides
+            if (parsed.slides.length !== slideCountNum) {
+              console.warn(
+                `Expected ${slideCountNum} slides but got ${parsed.slides.length}. Proceeding with ${parsed.slides.length} slides.`
+              );
+            }
+
+            // Validate each slide has required fields
+            for (let i = 0; i < parsed.slides.length; i++) {
+              const slide = parsed.slides[i];
+              if (
+                !slide.slideNumber ||
+                !slide.title ||
+                !slide.keyPoints ||
+                !Array.isArray(slide.keyPoints)
+              ) {
                 throw new Error(
-                  "Slides array is empty - model did not generate any slides"
+                  `Slide ${i + 1} is missing required fields (slideNumber, title, or keyPoints)`
                 );
               }
-
-              // Validate that we have the expected number of slides
-              if (parsed.slides.length !== slideCountNum) {
-                console.warn(
-                  `Expected ${slideCountNum} slides but got ${parsed.slides.length}. Proceeding with ${parsed.slides.length} slides.`
-                );
+              if (slide.keyPoints.length === 0) {
+                throw new Error(`Slide ${i + 1} has no key points`);
               }
+            }
 
-              // Validate each slide has required fields
-              for (let i = 0; i < parsed.slides.length; i++) {
-                const slide = parsed.slides[i];
-                if (
-                  !slide.slideNumber ||
-                  !slide.title ||
-                  !slide.keyPoints ||
-                  !Array.isArray(slide.keyPoints)
-                ) {
-                  throw new Error(
-                    `Slide ${i + 1} is missing required fields (slideNumber, title, or keyPoints)`
-                  );
-                }
-                if (slide.keyPoints.length === 0) {
-                  throw new Error(`Slide ${i + 1} has no key points`);
-                }
-              }
+            // Validate against schema (should already be validated, but double-check)
+            const validated = presentationOutlineSchema.parse(parsed);
 
-              const validated = presentationOutlineSchema.parse(parsed);
+            // Find or create User
+            let user = await prisma.user.findUnique({
+              where: { clerkId },
+            });
 
-              // Find or create User
-              let user = await prisma.user.findUnique({
-                where: { clerkId },
+            if (!user) {
+              user = await prisma.user.create({
+                data: { clerkId },
               });
+            }
 
-              if (!user) {
-                user = await prisma.user.create({
-                  data: { clerkId },
-                });
-              }
-
-              // Final validation: Ensure we never save empty slides array
-              if (!validated.slides || validated.slides.length === 0) {
-                throw new Error(
-                  "Cannot save outline: slides array is empty after validation"
-                );
-              }
-
-              // Create or update Presentation with outline
-              // Convert to JSON-serializable format for Prisma Json field
-              const outlineData = JSON.parse(JSON.stringify(validated));
-
-              const presentation = presentationId
-                ? await prisma.presentation.update({
-                    where: { id: presentationId },
-                    data: {
-                      outline: outlineData,
-                      userInput: description,
-                    },
-                  })
-                : await prisma.presentation.create({
-                    data: {
-                      userId: user.id,
-                      userInput: description,
-                      outline: outlineData,
-                    },
-                  });
-
-              // Send the final validated outline with presentationId
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({
-                    type: "complete",
-                    outline: validated,
-                    presentationId: presentation.id,
-                  })}\n\n`
-                )
-              );
-            } else {
-              // If no JSON found, log error and send error message
-              console.error(
-                "No JSON found in response. Full text:",
-                fullText.substring(0, 500)
-              );
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({
-                    type: "error",
-                    error:
-                      "Failed to generate valid outline. The model did not return valid JSON.",
-                    text: fullText.substring(0, 1000),
-                  })}\n\n`
-                )
+            // Final validation: Ensure we never save empty slides array
+            if (!validated.slides || validated.slides.length === 0) {
+              throw new Error(
+                "Cannot save outline: slides array is empty after validation"
               );
             }
+
+            // Create or update Presentation with outline
+            // Convert to JSON-serializable format for Prisma Json field
+            const outlineData = JSON.parse(JSON.stringify(validated));
+
+            const presentation = presentationId
+              ? await prisma.presentation.update({
+                  where: { id: presentationId },
+                  data: {
+                    outline: outlineData,
+                    userInput: description,
+                  },
+                })
+              : await prisma.presentation.create({
+                  data: {
+                    userId: user.id,
+                    userInput: description,
+                    outline: outlineData,
+                  },
+                });
+
+            // Send the final validated outline (matches presentationOutlineSchema)
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify(validated)}\n\n`)
+            );
           } catch (error) {
             console.error("Error saving outline:", error);
             const errorMessage =
               error instanceof Error ? error.message : "Unknown error";
-            // If parsing fails, send error with raw text for debugging
+            // If parsing fails, send error
             controller.enqueue(
               encoder.encode(
                 `data: ${JSON.stringify({
                   type: "error",
                   error: `Validation failed: ${errorMessage}`,
-                  text: fullText.substring(0, 1000),
                 })}\n\n`
               )
             );

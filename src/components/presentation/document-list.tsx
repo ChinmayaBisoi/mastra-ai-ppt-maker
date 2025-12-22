@@ -8,6 +8,7 @@ import { DocumentDeleteDialog } from "./document-delete-dialog";
 import { DocumentReprocessDialog } from "./document-reprocess-dialog";
 import { DocumentStatusSummary } from "./document-status-summary";
 import { DocumentListItem } from "./document-list-item";
+import { DocumentUpload } from "./document-upload";
 import { toast } from "sonner";
 
 interface Document {
@@ -46,11 +47,13 @@ interface PresentationStatusSummary {
 interface DocumentListProps {
   presentationId: string;
   onDocumentDeleted?: () => void;
+  onDocumentUploaded?: () => void;
 }
 
 export function DocumentList({
   presentationId,
   onDocumentDeleted,
+  onDocumentUploaded,
 }: DocumentListProps) {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
@@ -286,41 +289,47 @@ export function DocumentList({
     );
   }
 
-  if (documents.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Documents</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No documents uploaded yet.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const handleUploadComplete = () => {
+    fetchDocuments();
+    onDocumentUploaded?.();
+  };
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Documents ({documents.length})</CardTitle>
-          <div className="flex items-center gap-2">
-            <DocumentStatusSummary summary={statusSummary} />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchDocumentStatuses}
-              disabled={loadingStatus}
-              title="Refresh document processing status"
-            >
-              {loadingStatus ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4" />
+      <CardHeader className="pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-start gap-4 w-full">
+            <CardTitle className="text-xl font-semibold">
+              Documents
+              {documents.length > 0 && (
+                <span className="ml-2 text-muted-foreground font-normal">
+                  ({documents.length})
+                </span>
               )}
-            </Button>
+            </CardTitle>
+            <div className="hidden sm:flex items-center gap-3 text-xs text-muted-foreground">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={fetchDocumentStatuses}
+                disabled={loadingStatus}
+                className="h-8 w-8"
+                title="Refresh status"
+              >
+                {loadingStatus ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+              </Button>
+              {statusSummary && (
+                <DocumentStatusSummary summary={statusSummary} />
+              )}
+            </div>
+            <DocumentUpload
+              presentationId={presentationId}
+              onUploadComplete={handleUploadComplete}
+            />
           </div>
         </div>
       </CardHeader>
@@ -342,6 +351,8 @@ export function DocumentList({
             />
           ))}
         </div>
+
+        <div className="mt-4 ml-auto min-w-fit"></div>
       </CardContent>
 
       <DocumentDeleteDialog

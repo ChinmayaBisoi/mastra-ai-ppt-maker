@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { presentationOutlineSchema } from "@/schema/ppt-outline";
+import { Save, Sparkles, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import type { z } from "zod";
 
 type PresentationOutline = z.infer<typeof presentationOutlineSchema>;
@@ -16,6 +19,7 @@ interface OutlineEditorProps {
   onSave: (outline: PresentationOutline) => void;
   isStreaming?: boolean;
   streamedText?: string;
+  presentationId: string;
 }
 
 export function OutlineEditor({
@@ -23,9 +27,12 @@ export function OutlineEditor({
   onSave,
   isStreaming = false,
   streamedText = "",
+  presentationId,
 }: OutlineEditorProps) {
+  const router = useRouter();
   const [editableOutline, setEditableOutline] =
     useState<PresentationOutline | null>(outline);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (outline) {
@@ -80,10 +87,38 @@ export function OutlineEditor({
     setEditableOutline(updated);
   };
 
-  const handleSave = () => {
-    if (editableOutline) {
+  const handleSave = async () => {
+    if (!editableOutline) return;
+
+    setIsSaving(true);
+    try {
+      const response = await fetch(`/api/presentation/${presentationId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ outline: editableOutline }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to save outline");
+      }
+
+      toast.success("Outline saved successfully!");
       onSave(editableOutline);
+    } catch (error) {
+      console.error("Error saving outline:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save outline"
+      );
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  const handleGenerateSlides = () => {
+    router.push(`/create/${presentationId}`);
   };
 
   if (isStreaming && !outline) {
@@ -112,9 +147,34 @@ export function OutlineEditor({
     <Card className="max-w-4xl">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Presentation Outline</CardTitle>
-        <Button onClick={handleSave} disabled={isStreaming}>
-          Save Outline
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleSave}
+            disabled={isStreaming || isSaving || !editableOutline}
+            variant="outline"
+            size="sm"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Save Outline
+              </>
+            )}
+          </Button>
+          <Button
+            onClick={handleGenerateSlides}
+            disabled={isStreaming || isSaving || !editableOutline}
+            size="sm"
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            Generate Slides
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {editableOutline.summary && (
