@@ -24,7 +24,6 @@ type PresentationOutline = z.infer<typeof presentationOutlineSchema>;
 interface PresentationData {
   id: string;
   outline: PresentationOutline | null;
-  slides: Slide[] | null;
   designStyle: {
     designGuide?: string;
     colors?: Record<string, string>;
@@ -66,7 +65,6 @@ export default function PresentationEditorPage() {
       setPresentation({
         id: data.id,
         outline: data.outline as PresentationOutline | null,
-        slides: (data.slides as Slide[]) || null,
         designStyle:
           (data.designStyle as {
             designGuide?: string;
@@ -74,7 +72,7 @@ export default function PresentationEditorPage() {
           }) || null,
       });
 
-      setSlides(data.slides as Slide[]);
+      setSlides((data.slides as Slide[]) || []);
 
       if (!!data && !!data.slides && data.slides.length > 0) {
         hasSlides = true;
@@ -104,7 +102,7 @@ export default function PresentationEditorPage() {
     if (!presentation?.outline || isGenerating) return;
 
     // Don't generate if slides already exist with content
-    if (hasValidSlides(presentation.slides)) {
+    if (hasValidSlides(slides)) {
       console.log("Slides already exist, skipping generation");
       return;
     }
@@ -146,7 +144,7 @@ export default function PresentationEditorPage() {
     } finally {
       setIsGenerating(false);
     }
-  }, [presentation, isGenerating, presentationId]);
+  }, [presentation, isGenerating, presentationId, slides]);
 
   useEffect(() => {
     if (presentationId) {
