@@ -13,20 +13,35 @@ datasource db {
 
 // Example User model - adjust based on your needs
 model User {
-  id        String   @id @default(cuid())
-  clerkId   String   @unique
-  email     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String         @id @default(cuid())
+  clerkId       String         @unique
+  email         String?
+  presentations Presentation[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Presentation {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userInput   String
   outline     Json?
   slides      Json?
   designStyle Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  documents   Document[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Document {
+  id             String       @id @default(cuid())
+  presentationId String
+  presentation   Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
+  fileName       String
+  fileUrl        String
+  fileSize       Int
+  fileType       String
+  uploadedAt     DateTime     @default(now())
+  processedAt    DateTime? // Timestamp when document was processed for RAG
 }
